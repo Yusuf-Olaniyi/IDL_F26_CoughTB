@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 624" width="960" height="624" font-family='system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif' role="img" aria-labelledby="title desc">
+<title id="title">Cough-audio pipeline and VGGish architecture</title>
+<desc id="desc">Session recordings from four simultaneous devices are relabelled and audited, cut into single coughs with a CLAP-based extractor, converted to 64 by 97 log-mel spectrograms, balanced and augmented for training only, and resized to 96 by 64. VGGish applies six 3 by 3 convolutions with 64, 128, 256, 256, 512 and 512 channels and four max-pooling layers, then fully connected layers of 4096, 4096 and 128 units. A head of 128 to 16 to 1 units outputs a TB logit. A participant's score is the median clip probability over all clips and four inner-fold models.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#898781"/></marker></defs>
+<rect width="960" height="624" rx="16" fill="#1a1a19"/>
+<text x="40.0" y="44.0" font-size="12" font-weight="700" fill="#898781" text-anchor="start">1 · DATA PIPELINE</text>
+<rect x="40" y="62" width="134" height="84" rx="10" fill="#232322" stroke="#383835" stroke-width="1.5"/>
+<text x="107.0" y="86.0" font-size="12.5" font-weight="600" fill="#ffffff" text-anchor="middle">Session .wav</text>
+<text x="107.0" y="111.0" font-size="13.5" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>4 devices</text>
+<text x="107.0" y="132.0" font-size="10.5" font-weight="400" fill="#c3c2b7" text-anchor="middle">recorded simultaneously</text>
+<line x1="176.0" y1="104.0" x2="191.0" y2="104.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="194" y="62" width="134" height="84" rx="10" fill="#232322" stroke="#383835" stroke-width="1.5"/>
+<text x="261.0" y="86.0" font-size="12.5" font-weight="600" fill="#ffffff" text-anchor="middle">Relabel + audit</text>
+<text x="261.0" y="111.0" font-size="13.5" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>62 fixes</text>
+<text x="261.0" y="132.0" font-size="10.5" font-weight="400" fill="#c3c2b7" text-anchor="middle">cross-correlation check</text>
+<line x1="330.0" y1="104.0" x2="345.0" y2="104.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="348" y="62" width="134" height="84" rx="10" fill="#232322" stroke="#383835" stroke-width="1.5"/>
+<text x="415.0" y="86.0" font-size="12.5" font-weight="600" fill="#ffffff" text-anchor="middle">Cough extractor</text>
+<text x="415.0" y="111.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>clips &lt; 1 s</text>
+<text x="415.0" y="132.0" font-size="10.5" font-weight="400" fill="#c3c2b7" text-anchor="middle">CLAP, same cuts per device</text>
+<line x1="484.0" y1="104.0" x2="499.0" y2="104.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="502" y="62" width="134" height="84" rx="10" fill="#232322" stroke="#383835" stroke-width="1.5"/>
+<text x="569.0" y="86.0" font-size="12.5" font-weight="600" fill="#ffffff" text-anchor="middle">Log-mel</text>
+<text x="569.0" y="111.0" font-size="13.5" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>64 × 97</text>
+<text x="569.0" y="132.0" font-size="10.5" font-weight="400" fill="#c3c2b7" text-anchor="middle">25 ms win · 10 ms hop</text>
+<line x1="638.0" y1="104.0" x2="653.0" y2="104.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="656" y="62" width="134" height="84" rx="10" fill="#4a2614" stroke="#d95926" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="723.0" y="86.0" font-size="12.5" font-weight="600" fill="#ffffff" text-anchor="middle">Balance + augment</text>
+<text x="723.0" y="111.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>phone×site×TB</text>
+<text x="723.0" y="132.0" font-size="10.5" font-weight="400" fill="#c3c2b7" text-anchor="middle">train only</text>
+<line x1="792.0" y1="104.0" x2="807.0" y2="104.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="810" y="62" width="134" height="84" rx="10" fill="#232322" stroke="#383835" stroke-width="1.5"/>
+<text x="877.0" y="86.0" font-size="12.5" font-weight="600" fill="#ffffff" text-anchor="middle">Resize</text>
+<text x="877.0" y="111.0" font-size="13.5" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>96 × 64</text>
+<text x="877.0" y="132.0" font-size="10.5" font-weight="400" fill="#c3c2b7" text-anchor="middle">VGGish input</text>
+<path d="M877.0,150 L877.0,170 L72,170 L72,210" fill="none" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="24" y="214" width="912" height="386" rx="14" fill="none" stroke="#2c2c2a" stroke-width="1.5"/>
+<text x="40.0" y="244.0" font-size="12" font-weight="700" fill="#898781" text-anchor="start">2 · VGGISH (AudioSet-pretrained, fine-tuned end to end) + TB HEAD  ·  72.14 M parameters</text>
+<rect x="70.0" y="296.0" width="12" height="176" rx="4" fill="#4a4a47" stroke="#383835" stroke-width="1"/>
+<text x="76.0" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>1</text>
+<text x="76.0" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>96×64</text>
+<rect x="140.6" y="291.0" width="22" height="176" rx="4" fill="#16375e" stroke="#3987e5" stroke-width="1"/>
+<rect x="135.6" y="296.0" width="22" height="176" rx="4" fill="#3987e5" stroke="#3987e5" stroke-width="1"/>
+<text x="146.6" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>64</text>
+<text x="146.6" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>96×64</text>
+<line x1="86.0" y1="384.0" x2="131.6" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="216.2" y="323.0" width="30" height="112" rx="4" fill="#16375e" stroke="#3987e5" stroke-width="1"/>
+<rect x="211.2" y="328.0" width="30" height="112" rx="4" fill="#3987e5" stroke="#3987e5" stroke-width="1"/>
+<text x="226.2" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>128</text>
+<text x="226.2" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>48×32</text>
+<line x1="166.6" y1="384.0" x2="207.2" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="299.8" y="343.0" width="42" height="72" rx="4" fill="#16375e" stroke="#3987e5" stroke-width="1"/>
+<rect x="294.8" y="348.0" width="42" height="72" rx="4" fill="#3987e5" stroke="#3987e5" stroke-width="1"/>
+<text x="315.8" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>256 ×2</text>
+<text x="315.8" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>24×16</text>
+<line x1="250.2" y1="384.0" x2="290.8" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="395.4" y="356.0" width="56" height="46" rx="4" fill="#16375e" stroke="#3987e5" stroke-width="1"/>
+<rect x="390.4" y="361.0" width="56" height="46" rx="4" fill="#3987e5" stroke="#3987e5" stroke-width="1"/>
+<text x="418.4" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>512 ×2</text>
+<text x="418.4" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>12×8</text>
+<line x1="345.8" y1="384.0" x2="386.4" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="500.0" y="296.0" width="12" height="176" rx="4" fill="#4a4a47" stroke="#383835" stroke-width="1"/>
+<text x="506.0" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>12 288</text>
+<text x="506.0" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle">flatten</text>
+<line x1="455.4" y1="384.0" x2="496.0" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="565.6" y="309.0" width="22" height="150" rx="4" fill="#3987e5" stroke="#3987e5" stroke-width="1"/>
+<text x="576.6" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>4 096</text>
+<text x="576.6" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle">FC1</text>
+<line x1="516.0" y1="384.0" x2="561.6" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="641.2" y="309.0" width="22" height="150" rx="4" fill="#3987e5" stroke="#3987e5" stroke-width="1"/>
+<text x="652.2" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>4 096</text>
+<text x="652.2" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle">FC2</text>
+<line x1="591.6" y1="384.0" x2="637.2" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="716.8" y="362.0" width="22" height="44" rx="4" fill="#199e70" stroke="#199e70" stroke-width="1"/>
+<text x="727.8" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>128</text>
+<text x="727.8" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle">embed</text>
+<line x1="667.2" y1="384.0" x2="712.8" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="792.4" y="372.0" width="22" height="24" rx="4" fill="#d95926" stroke="#d95926" stroke-width="1"/>
+<text x="803.4" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>16</text>
+<text x="803.4" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle">FC</text>
+<line x1="742.8" y1="384.0" x2="788.4" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="868.0" y="378.0" width="22" height="12" rx="4" fill="#d95926" stroke="#d95926" stroke-width="1"/>
+<text x="879.0" y="284.0" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" font-family='ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace'>1</text>
+<text x="879.0" y="492.0" font-size="11" font-weight="600" fill="#c3c2b7" text-anchor="middle">logit</text>
+<line x1="818.4" y1="384.0" x2="864.0" y2="384.0" stroke="#898781" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M131.6,504 L131.6,510 L450.4,510 L450.4,504" fill="none" stroke="#383835" stroke-width="1.2"/>
+<text x="291.0" y="528.0" font-size="11.5" font-weight="600" fill="#c3c2b7" text-anchor="middle">convolutional features · 4.50 M params</text>
+<path d="M561.6,504 L561.6,510 L742.8,510 L742.8,504" fill="none" stroke="#383835" stroke-width="1.2"/>
+<text x="652.2" y="528.0" font-size="11.5" font-weight="600" fill="#c3c2b7" text-anchor="middle">embedding MLP · 67.64 M</text>
+<path d="M788.4,504 L788.4,510 L894.0,510 L894.0,504" fill="none" stroke="#383835" stroke-width="1.2"/>
+<text x="841.2" y="528.0" font-size="11.5" font-weight="600" fill="#c3c2b7" text-anchor="middle">head · 2 081</text>
+<rect x="48" y="556" width="14" height="14" rx="3" fill="#3987e5"/>
+<text x="68.0" y="568.0" font-size="11.5" font-weight="600" fill="#c3c2b7" text-anchor="start">Conv 3×3 + ReLU, then MaxPool 2×2</text>
+<rect x="289.9" y="556" width="14" height="14" rx="3" fill="#199e70"/>
+<text x="309.9" y="568.0" font-size="11.5" font-weight="600" fill="#c3c2b7" text-anchor="start">128-d embedding</text>
+<rect x="418.4" y="556" width="14" height="14" rx="3" fill="#d95926"/>
+<text x="438.4" y="568.0" font-size="11.5" font-weight="600" fill="#c3c2b7" text-anchor="start">Linear 128→16 · ReLU · Dropout 0.5 · Linear 16→1</text>
+<text x="48.0" y="592.0" font-size="11.5" font-weight="400" fill="#c3c2b7" text-anchor="start">Participant score = median of sigmoid(logit) over all of the participant's clips and the 4 inner-fold models.</text>
+</svg>

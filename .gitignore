@@ -1,0 +1,29 @@
+# Data and generated bundles (Zambia CIDRZ audio is not redistributed)
+data/
+*.wav
+*.zip
+*.npy
+*.npz
+segmented_coughs/
+export/
+outputs/
+cache/
+
+# Model weights
+*.pth
+*.pt
+*.ckpt
+
+# Notebook and Python clutter
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Credentials
+.env
+kaggle.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
