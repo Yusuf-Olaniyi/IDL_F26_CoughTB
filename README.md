@@ -28,12 +28,6 @@ dominate what the cough features encode.
   <img alt="Status" src="https://img.shields.io/badge/status-Zambia%20baselines%20complete-1baf7a">
 </p>
 
-> The 6-page progress report is in [`docs/progress_report.pdf`](docs/progress_report.pdf).
-> This README is the long version: it adds the full exploratory analysis, every preparation
-> step, the model architecture and training recipe, and the complete set of results.
-
----
-
 ## Contents
 
 1. [Motivation and research question](#1-motivation-and-research-question)
