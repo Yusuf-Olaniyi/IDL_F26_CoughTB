@@ -721,28 +721,7 @@ mechanism behind drops such as the Peruvian result [3].
 | Representations | General audio features only so far | HeAR and OPERA in Experiment 4 |
 | Data governance | Private storage and Kaggle notebooks to be added to the data use statement | Amendment this week; exports stay aggregate-only |
 
-## 11. Roadmap: the final four weeks
 
-Four workstreams run in parallel from 10 November, with three gates that keep Week 4
-(ending 7 December) free for writing. All experiments except Experiment 6 run on the CODA data
-and plug into notebook 04.
-
-| # | Experiment | Answers | Owner (proposed) | Priority |
-|---|---|---|---|---|
-| 1 | **Country shortcut test:** score the cough inside each country and against a country-only score | How much accuracy is a shortcut? | Martin | Core, first |
-| 2 | **Bacterial-load check:** does the cough score rise with Xpert grade within a country? | Shortcut vs real signal | Martin | Core |
-| 3 | **Removing recording context:** loudness levelling and per-country standardisation | Can simple fixes help? | Yusuf | Core |
-| 4 | **Health-specific encoders:** HeAR and OPERA under leave-one-country-out | Does a better encoder change the answer? | Odunayo | Core |
-| 5 | **Local data needed:** threshold reset and retraining with 10–100 local patients | What does a new country need? | Yusuf | Core |
-| 6 | **External test:** CODA-trained models on Zambia and Kenya with identical 0.5 s clips; nine-country probe | Does it hold on other studies? | Michael | Core |
-| 7 | **Who benefits:** the gain by HIV status and sex | Targeted use? | Martin | Add-on |
-| 8 | **Adapting the encoder:** fine-tune the best encoder, compare with frozen | Frozen vs adapted | Odunayo | Stretch |
-
-| Gate | Date | Must be true to pass | Decides |
-|---|---|---|---|
-| 1 · Shortcut verdict | Mon 16 Nov | Experiments 1–2 done; first Experiment 3 table; Zambia clips ready | The paper's headline |
-| 2 · Encoder freeze | Mon 23 Nov | HeAR and OPERA embeddings cached; main results table filled; Experiment 7 done | Representations in the paper; go/no-go on Experiment 8 |
-| 3 · Results freeze | Mon 30 Nov | Every table and figure in the shared folder | No new experiments after this |
 
 **Rules every experiment follows**
 
@@ -782,7 +761,7 @@ fine-tuning of every encoder (reduced to Experiment 8).
 preprint after the course and Interspeech 2027 as the main target venue. Before submitting
 anywhere, check CODA's conditions for publications.
 
-## 12. Repository structure
+## 11. Repository structure
 
 ```
 IDL_F26_CoughTB/
@@ -808,7 +787,7 @@ IDL_F26_CoughTB/
 No dataset files are included. Everything the notebooks need is read from Kaggle or the team's
 private storage at run time.
 
-## 13. Reproducing the results
+## 12. Reproducing the results
 
 All four notebooks are written for **private Kaggle notebooks** with **Internet on**.
 
@@ -834,7 +813,7 @@ pip install matplotlib
 python scripts/make_figures.py
 ```
 
-## 14. References
+## 13. References
 
 1. World Health Organization. *High-Priority Target Product Profiles for New Tuberculosis Diagnostics.* WHO, 2014.
 2. D. Jaganath et al. "Accelerating cough-based algorithms for pulmonary tuberculosis screening: Results from the CODA TB DREAM Challenge." *Open Forum Infectious Diseases* 12(10), 2025.
