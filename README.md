@@ -1,36 +1,57 @@
 # Does Cough Audio Add Value Under Country Shift?
 
-**Tuberculosis triage from smartphone cough recordings: pipeline, baselines and feature analysis on the Zambia CIDRZ dataset**
+**Tuberculosis triage from cough recordings across CODA TB DREAM (7 countries), Zambia CIDRZ and Kenya TBscreen**
 
 Martin Koome · Odunayo Akinlade · Yusuf Olaniyi · Michael Quaicoe
-Carnegie Mellon University · Introduction to Deep Learning (Fall 2026) · Course project
+Carnegie Mellon University · 11-785 Introduction to Deep Learning (Fall 2026) · Course project
 
 Smartphone cough recordings have been proposed as a cheap, specimen-free way to screen for
-tuberculosis (TB), but models that work in one study often fail in another. Our project asks
-whether cough audio adds anything to the questions a health worker already asks when an
-entire country is held out from model development. While access to the multi-country
-CODA TB DREAM data is being finalised, we built and validated the full pipeline on the
-**Zambia CIDRZ** dataset, where every participant was recorded by four devices at once.
+tuberculosis (TB), but models that work in one study often fail in another. We ask whether
+cough audio adds anything to the questions a health worker already asks **when the model is
+used in a country it was not built in**. The outcome is the paired gain
+Δ = AUROC(questions + cough) − AUROC(questions) on the same held-out people.
 
-**Results so far.** On the same 325 participants, a fine-tuned **VGGish** cough model and a
-questionnaire-only logistic regression perform equally (AUROC **0.740 ± 0.086** and
-**0.749 ± 0.094**; paired DeLong Δ = +0.020, 95 % CI −0.069 to 0.109). Both reproduce the
-published baselines within one standard deviation. A feature analysis shows why transfer is
-hard: a linear probe recognises the **recording phone almost perfectly (AUROC 0.994)** but
-**TB status only weakly (0.665)**. Recording conditions, which differ between countries,
-dominate what the cough features encode.
+**Where we stand (10 November 2026).** Baselines are complete on all three datasets, and each
+one reproduces the published result it can be compared with. On CODA, holding out one country
+at a time, **adding the cough gains +0.008 AUROC (95 % CI −0.00 to +0.02, p = 0.12)**. In
+Madagascar it *lowers* AUROC by 0.076, and inside a new country the cough alone scores
+**0.506**, essentially a coin flip. Meanwhile a linear probe can name the **country from a single
+cough at AUROC 0.90**, even though every CODA site used the same app. Recording context, not
+disease, dominates what the cough features encode.
 
 <p align="left">
   <img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-VGGish-EE4C2C?logo=pytorch&logoColor=white">
-  <img alt="librosa" src="https://img.shields.io/badge/librosa-log--mel-4B8BBE">
+  <img alt="librosa" src="https://img.shields.io/badge/librosa-log--mel%20%7C%20MFCC-4B8BBE">
   <img alt="scikit-learn" src="https://img.shields.io/badge/scikit--learn-logistic%20regression-F7931E?logo=scikitlearn&logoColor=white">
   <img alt="Kaggle" src="https://img.shields.io/badge/run%20on-Kaggle%20GPU-20BEFF?logo=kaggle&logoColor=white">
-  <img alt="Status" src="https://img.shields.io/badge/status-Zambia%20baselines%20complete-1baf7a">
+  <img alt="Datasets" src="https://img.shields.io/badge/datasets-CODA%20%C2%B7%20Zambia%20%C2%B7%20Kenya-6E4C9E">
+  <img alt="Status" src="https://img.shields.io/badge/status-baselines%20complete%2C%20Week%201%20of%204-1baf7a">
 </p>
 
-> The 6-page progress report is in [`docs/progress_report.pdf`](docs/progress_report.pdf).
-> This README is the long version: it adds the full exploratory analysis, every preparation
-> step, the model architecture and training recipe, and the complete set of results.
+> **Data notice.** CODA TB DREAM is a controlled-access dataset. This repository contains **code
+> and aggregate results only**: no audio, embeddings, participant-level tables or predictions
+> from any dataset. See [Datasets and data governance](#3-datasets-and-data-governance) before
+> sharing this repository more widely.
+
+---
+
+## Key findings so far
+
+| # | Finding | Evidence |
+|---|---|---|
+| 1 | **The pipeline is sound.** All three datasets reproduce published results. | Zambia VGGish 0.740 vs 0.755 published; Kenya fine-tuned VGGish 0.658 per cough vs 0.661; CODA cough 0.684 vs the challenge's 0.69–0.74 |
+| 2 | **The questions carry most of the signal.** | CODA questions alone 0.731; with CODA's four extra variables 0.810, already inside the challenge's cough + clinical range (0.78–0.83) |
+| 3 | **Within one population the cough gain is real but tiny.** | CODA random split Δ = +0.014 (+0.00 to +0.02, p = 0.01); Zambia +0.019; Kenya −0.006 |
+| 4 | **In a new country the gain disappears, and can reverse.** | CODA leave-one-country-out Δ = +0.008 (p = 0.12); Madagascar −0.076 (−0.12 to −0.04) |
+| 5 | **Inside a new country the cough alone is near chance.** | Mean within-country cough AUROC 0.506 (VGGish), 0.535 (spectrogram), 0.546 (MFCC) |
+| 6 | **A cough reveals its recording context far better than TB.** | Phone in Zambia 0.99; Zambia vs Kenya 0.986; country within CODA 0.90–0.94; TB from the same features 0.65–0.68 |
+| 7 | **The questions also travel imperfectly, but lose less.** | CODA questions drop 0.04 to a new country; the cough drops 0.13–0.18 |
+| 8 | **Decision thresholds do not travel.** | A 90 %-sensitivity threshold set on six countries clears 0 % of non-TB patients in Madagascar and 7 % in Uganda |
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="figures/gain-forest-dark.svg">
+  <img alt="Forest plot of the gain from adding the cough to the questionnaire, with 95 % DeLong intervals. Same-population settings: Zambia +0.019, Kenya −0.006, CODA random split +0.014. New-country settings: Zambia to Kenya −0.016, Kenya to Zambia −0.003, CODA leave-one-country-out pooled +0.008, CODA held-out Madagascar −0.076 with an interval entirely below zero." src="figures/gain-forest-light.svg" width="100%">
+</picture>
 
 ---
 
@@ -38,15 +59,15 @@ dominate what the cough features encode.
 
 1. [Motivation and research question](#1-motivation-and-research-question)
 2. [Background and related work](#2-background-and-related-work)
-3. [Data](#3-data)
-4. [Exploratory data analysis](#4-exploratory-data-analysis)
-5. [Data preparation pipeline](#5-data-preparation-pipeline)
-6. [Models](#6-models)
-7. [Evaluation protocol](#7-evaluation-protocol)
-8. [Results](#8-results)
-9. [Why cough features transfer poorly: embedding analysis](#9-why-cough-features-transfer-poorly-embedding-analysis)
+3. [Datasets and data governance](#3-datasets-and-data-governance)
+4. [The four notebooks](#4-the-four-notebooks)
+5. [Shared methods](#5-shared-methods)
+6. [Part I · Zambia CIDRZ: pipeline and baselines](#6-part-i--zambia-cidrz-pipeline-and-baselines)
+7. [Part II · Kenya TBscreen: a second country](#7-part-ii--kenya-tbscreen-a-second-country)
+8. [Part III · CODA: leave-one-country-out](#8-part-iii--coda-leave-one-country-out)
+9. [Synthesis across the three datasets](#9-synthesis-across-the-three-datasets)
 10. [Discussion, limitations and risks](#10-discussion-limitations-and-risks)
-11. [Next steps](#11-next-steps)
+11. [Roadmap: the final four weeks](#11-roadmap-the-final-four-weeks)
 12. [Repository structure](#12-repository-structure)
 13. [Reproducing the results](#13-reproducing-the-results)
 14. [References](#14-references)
@@ -66,73 +87,141 @@ cross-dataset study found that learned cough representations cluster **by record
 rather than by TB status** [4]. The clinics that would benefit most never contributed
 training data, which is exactly where current models are least reliable.
 
-**Research question.** Do self-supervised cough representations (HeAR, OPERA) improve TB
-triage beyond routine clinical variables when an entire country is excluded from model
-development, and does adapting the audio encoder help or hurt on that held-out country?
+**Research question.** When an entire country is excluded from model development, does adding
+cough audio to routine clinical questions improve TB triage? Do health-specific encoders (HeAR,
+OPERA) change the answer, and does adapting the encoder help or hurt in the held-out country?
 
 **Quantity of interest.** The paired gain on the same held-out patients:
 
 $$\Delta = \mathrm{AUROC}(\text{questionnaire} + \text{cough}) - \mathrm{AUROC}(\text{questionnaire})$$
 
-**Why Zambia first.** The Zambia CIDRZ dataset serves the country-shift study in three ways:
+**Design choices fixed in the proposal**, all still in use:
 
-| Role | Why it matters |
-|---|---|
-| **Pipeline validation** | Published Zambia baselines exist [4], so we can check that our pipeline reproduces them. |
-| **Isolating shift ingredients** | The same coughs were recorded on several devices at two clinics, which separates *device* fully and *clinic* in part, two things that a country hold-out mixes together. |
-| **External test country** | Zambia is not a CODA country, so it will later serve as a fully external eighth test country. |
+1. The gain Δ, not the AUROC, is the outcome, measured on the same people with DeLong intervals.
+2. **Leave-one-country-out on CODA** is the main test: train on six countries, test on the seventh.
+3. Health-specific audio encoders (HeAR, OPERA) are compared with general audio features (VGGish,
+   spectrogram and MFCC summaries).
+4. Frozen versus adapted encoders: does fine-tuning help in a new country, or does it learn the
+   training countries?
+
+While CODA access was pending we built and validated the pipeline on two other datasets, Zambia
+and Kenya. They now serve as **external test countries**.
 
 ## 2. Background and related work
 
 - **Zhang et al. [4]** are our closest reference. Across CODA, TBscreen and Zambia they report a
   within-Zambia AUROC of **0.755 ± 0.056** for a mel-spectrogram VGGish model and
-  **0.767 ± 0.025** for logistic regression on clinical variables. They suggest, without
-  testing it, that clinical variables could be a stable baseline to which audio adds
-  complementary information. We test that directly.
+  **0.767 ± 0.025** for logistic regression on clinical variables, and suggest, without testing
+  it, that clinical variables could be a stable baseline to which audio adds information.
+- **CODA TB DREAM** [2, 13]: challenge teams reached 0.69–0.74 for cough alone and 0.78–0.83 for
+  cough plus clinical data; the Peru external test reached only 0.48–0.62 [3].
+- **TBscreen** [5] (Kenya): fine-tuned VGGish 0.661 per cough and 0.744 per participant; their
+  main scalogram ResNet18 reaches 0.793 per cough.
 - **Candidate encoders.** HeAR, pretrained on 313 million unlabelled body-sound clips [7], and
   OPERA, an open respiratory encoder never benchmarked on TB [8]. LoRA [9] adapts them cheaply.
 - **Confounding in cough AI.** COVID-19 cough classifiers fell from AUROC 0.85 to 0.62 once
   confounders were matched [10]. We follow the participant-disjoint cross-validation of [11].
 - **Multimodal TB work.** HeAR has been combined with CODA clinical data [12], but with
   clip-level predictions on a balanced subset. We instead measure the *additional* value of
-  audio for the *same* held-out patients, reporting AUROC for direct comparison.
+  audio for the *same* held-out patients.
 
-## 3. Data
+## 3. Datasets and data governance
 
-| Dataset | Role | Contents |
-|---|---|---|
-| **CODA TB DREAM** [13] | Main study (access being finalised) | Adults with cough enrolled consecutively at clinics in seven countries; ≥ 3 solicited coughs per person on an Android phone; Xpert MTB/RIF Ultra and culture as reference standard. The accessible partition holds about 1,100 participants. |
-| **Zambia CIDRZ** [7] | Development set and external test country | Questionnaire and laboratory data for **1,828 adults** from three Lusaka clinics, and **1,481 session recordings**. In each session a participant gave three single coughs and a burst of several, recorded **simultaneously** by an audio recorder and three phones. |
-
-**Recording devices (Zambia).**
-
-| Device | Model | Tier | Native format |
+| | **CODA TB DREAM** | **Zambia CIDRZ** | **Kenya TBscreen** |
 |---|---|---|---|
-| Phone A | Google Pixel 3a | low | 192 kHz, stereo |
-| Phone B | Samsung Galaxy A12 | mid | 192 kHz, stereo |
-| Phone C | Samsung Galaxy A22 | high | 192 kHz, stereo |
-| Audio recorder | — | reference | 44.1 kHz, stereo |
+| Countries | Uganda, Philippines, Vietnam, Madagascar, South Africa, India, Tanzania | Zambia (Lusaka) | Kenya (Nairobi) |
+| Participants with coughs | 1,082 | 325 (analysis cohort) | 148 |
+| TB cases | 291 (27 %) | 57 (18 %) | 102 (69 %) |
+| Study design | Consecutive adults with cough, all tested for TB | Clinic attendees (triage population) | Case-control: TB against other respiratory illness |
+| Recordings | One app everywhere; 9,772 solicited coughs of 0.5 s | Three phones at once; 5,287 segmented coughs | Phone + two microphones in one room; natural and forced coughs |
+| Reference standard | Xpert MTB/RIF Ultra and culture | Xpert and culture | Per TBscreen protocol [5] |
+| Our role for it | **Main experiment** | Development set, external test country | External test country |
+| Notebook | 04 | 01, 02 | 03 |
 
-Median session length is about 42 s on the phones and 46 s on the recorder. Every recording
-is resampled to 16 kHz mono before any processing.
+**Harmonising the questions.** All three datasets are reduced to the same **nine questions**:
+age, sex, smoking, HIV status, previous TB, cough duration, fever, weight loss and night
+sweats. Two definitions differ: smoking means *smoked in the last week* in CODA but *ever
+smoked* elsewhere, and unknown HIV status is treated as missing. CODA also has four extra
+variables (coughing blood, heart rate, temperature, BMI) that form an **extended questions**
+model used only within CODA.
 
-**Label.** `ground_truth_tb` (Xpert and culture), available for all 1,828 participants.
-Chest X-ray AI scores are also in the metadata, but they are a different test and are **never
-used as model inputs**.
+### Data access and what this repository contains
 
-<p align="center">
-  <img alt="Heatmap of session recordings per site and device: Kanyama has the most recordings on every device, the recorder covers fewer participants than the phones." src="figures/notebook/inventory_site_device.png" width="560">
-</p>
+| Dataset | Access | In this repository |
+|---|---|---|
+| CODA TB DREAM [13] | **Controlled access** through Synapse (project `syn39711065`). All four team members are certified, and the data are used under our data use statement. | Code and **aggregate** outputs only: counts per country, AUROCs, intervals, figures, and the variable names from the data dictionary. |
+| Zambia CIDRZ [7] | Kaggle dataset `googlehealthai/google-health-ai` | Code, aggregate outputs and figures. |
+| Kenya TBscreen [5] | Read from the team's private storage | Code, aggregate outputs and figures. |
 
-## 4. Exploratory data analysis
+Rules the team follows for every notebook and export:
 
-### 4.1 Who are the participants?
+- **Never commit data.** No audio, spectrograms, embeddings, participant-level tables, per-participant
+  predictions or fold files (`coda_folds.csv` lists participant IDs). `.gitignore` blocks the common formats.
+- **Credentials stay out of code.** Storage access is read from the Kaggle secret
+  `AZURE_STORAGE_CONNECTION_STRING`; each member uses a personal, read-only, expiring token.
+- **Notebooks run privately on Kaggle**, and their export bundles contain aggregate tables and figures only.
+- **Keep this GitHub repository private** until CODA's conditions for publications (citation,
+  consortium acknowledgement, any review by data contributors) have been checked.
+
+## 4. The four notebooks
+
+| Notebook | Dataset | What it does | Runtime |
+|---|---|---|---|
+| [`01_zambia_baseline.ipynb`](notebooks/01_zambia_baseline.ipynb) | Zambia | Inventory, EDA, relabelling, recording audit, CLAP cough segmentation, cohort, shared folds, Baseline B (questions) and C1 (fine-tuned VGGish), paired comparison | GPU, ≈ 1.5–2 h full protocol |
+| [`02_embedding_analysis.ipynb`](notebooks/02_embedding_analysis.ipynb) | Zambia | Phone vs TB probes, t-SNE maps, site check, same-cough distances across phones, unseen-phone test | CPU, minutes |
+| [`03_kenya_tbscreen_baselines.ipynb`](notebooks/03_kenya_tbscreen_baselines.ipynb) | Kenya (+ Zambia) | Data map, harmonised questions, device pairing, verified stored spectrograms, baselines, fine-tuned VGGish reproduction, device probes, natural vs forced coughs, Zambia ↔ Kenya transfer | GPU, ≈ 0.9 h |
+| [`04_coda_leave_one_country_out.ipynb`](notebooks/04_coda_leave_one_country_out.ipynb) | CODA | Participant table, EDA by country, held-out groups, 9,772 coughs as 0.5 s clips, MFCC / spectrogram / VGGish representations, random split, **leave-one-country-out**, frozen thresholds, country probe | GPU for one step |
+
+All code cells in the four notebooks have been run and carry their outputs (notebook 04's
+final cell is empty).
+
+## 5. Shared methods
+
+**Three models, the same in every notebook.**
+
+| Model | Inputs | How |
+|---|---|---|
+| **B · questions only** | the nine shared questions (CODA: optionally the extended set) | Regularised logistic regression; variables whose missingness differs by more than 20 points between TB groups are excluded, because "missing" would act as a shortcut |
+| **Cough only** | one feature vector per cough | Linear probe (logistic regression) per cough; a participant's score is the mean (CODA, Kenya) or median (Zambia) over their coughs. Notebook 01 instead fine-tunes the full VGGish |
+| **A · questions + cough** | B's inputs plus the participant's out-of-fold cough score | Logistic regression; the cough score used in training comes from inner folds, so it is always a prediction for people the cough model did not see. A zero cough weight recovers B |
+
+**Cough representations.**
+
+| Representation | Size | Description |
+|---|---|---|
+| MFCC summary | 40 | Mean and spread of 20 MFCCs, the classic hand-crafted features (CODA) |
+| Spectrogram summary | 128 | Mean and spread of each of 64 mel bands; nothing learned |
+| VGGish (pretrained) | 128 | AudioSet-pretrained VGGish embedding [6], no TB training |
+| VGGish (fine-tuned) | — | End-to-end fine-tuning on TB (Zambia notebook 01, Kenya notebook 03) |
+| HeAR, OPERA | 512, — | Planned for Week 2 ([Roadmap](#11-roadmap-the-final-four-weeks)) |
+
+**Evaluation.**
+
+- **Participant-disjoint splits only.** A person's coughs never appear in both training and test data.
+- **AUROC per participant**, with bootstrap intervals. Paired differences between models on the
+  same people use **DeLong's test** [14].
+- **Frozen threshold.** The threshold for 90 % sensitivity is fixed on the training data and
+  applied unchanged to the test set, as a clinic would have to do.
+- **Pooled versus within-country AUROC.** Pooled ranks all held-out people together;
+  within-country computes AUROC inside each country and averages. If a model only recognises
+  countries with more TB, the pooled number looks good while the within-country number sits near 0.5.
+
+---
+
+## 6. Part I · Zambia CIDRZ: pipeline and baselines
+
+The Zambia dataset was our development set. Every participant was recorded by **four devices
+at once** (an audio recorder and three phones: Pixel 3a, Galaxy A12, Galaxy A22), which makes
+it possible to isolate the effect of the device.
+
+### 6.1 Exploratory analysis
 
 <p align="center">
   <img alt="Left: TB prevalence by clinic, 4.9 % at Chainda, 8.2 % at Chawama and 15.5 % at Kanyama. Right: share answering yes to each questionnaire item by TB status, with cough over four weeks, male sex and weight loss showing the largest differences." src="figures/eda_participants.png" width="100%">
 </p>
 
-**TB prevalence differs sharply by clinic** (all 1,828 participants):
+The metadata cover **1,828 adults** from three Lusaka clinics and **1,481 session recordings**.
+TB prevalence differs sharply by clinic (all participants):
 
 | Clinic | Participants | TB-positive | Prevalence |
 |---|---:|---:|---:|
@@ -140,14 +229,10 @@ used as model inputs**.
 | Chawama | 748 | 61 | 8.2 % |
 | Kanyama | 857 | 133 | 15.5 % |
 
-Among participants who also have audio, prevalence is higher still: about 9 % at Chawama and
-22 % at Kanyama. This imbalance between clinics matters later, because a model could appear to
-"detect TB" simply by recognising Kanyama recordings (see [§9.3](#93-is-the-weak-tb-signal-real-or-is-it-the-clinic)).
-
 **The questionnaire is a strong opponent.** Several answers separate TB-positive from
-TB-negative participants clearly, while others barely differ:
+TB-negative participants clearly, while HIV status and previous TB barely differ:
 
-| Questionnaire item | TB-negative | TB-positive |
+| Item | TB-negative | TB-positive |
 |---|---:|---:|
 | Cough > 4 weeks | 19 % | 49 % |
 | Male | 43 % | 72 % |
@@ -158,243 +243,78 @@ TB-negative participants clearly, while others barely differ:
 | Previous TB | 16 % | 18 % |
 | HIV positive | 35 % | 36 % |
 
-Cough audio must therefore carry information **beyond "has been coughing for weeks"** to be
-worth adding.
-
-<details>
-<summary><b>More EDA from the notebook</b> (age, cough duration, missingness, device coverage, session length)</summary>
-
-<p align="center">
-  <img alt="TB prevalence by site and age distribution by TB status." src="figures/notebook/eda_prevalence_age.png" width="100%">
-</p>
-<p align="center">
-  <img alt="Share answering yes by TB status, and reported cough duration within each TB group: TB-positive participants more often report coughing for over four weeks." src="figures/notebook/eda_symptoms_cough_duration.png" width="100%">
-</p>
-<p align="center">
-  <img alt="Missing values per clinical variable: all nine model variables are almost complete." src="figures/notebook/eda_missingness.png" width="560">
-</p>
-
-All nine clinical variables are close to complete: **1,823 participants (205 TB-positive)**
-have every variable and a label, matching the count reported by Zhang et al.
-
-<p align="center">
-  <img alt="Bar chart of which devices recorded each participant; most were recorded on all three phones." src="figures/notebook/eda_device_coverage.png" width="620">
-</p>
-<p align="center">
-  <img alt="Box plot of session length per device, roughly 40 to 50 seconds for every device." src="figures/notebook/eda_session_length.png" width="620">
-</p>
-
-</details>
-
-### 4.2 What does the audio look like?
+**The devices sound different.** The same cough recorded at the same moment looks different on
+each device; Phone C (high tier) keeps far more energy above 5 kHz than the others.
 
 <p align="center">
   <img alt="One recording session on four devices, time-aligned: waveforms on the left, mel spectrograms on the right. The coughs line up in time, but each device shows a different frequency response and background level." src="figures/notebook/session_four_devices.png" width="100%">
 </p>
-
-Each row is the same moment recorded by a different device. The first seconds are a staff
-member reading out the participant ID; the sharp bursts after it are coughs. The coughs line
-up in time on every device, but **how high they reach in frequency and how much background
-they carry depends on the device**.
-
-<p align="center">
-  <img alt="Mel spectrograms of the same session on Phone A and Phone C: Phone A carries low-pitched background noise that Phone C does not." src="figures/session_phoneA_phoneC.png" width="620">
-</p>
-
-Averaging the spectrum of every cough clip per device makes these device signatures explicit.
-Phone C (high tier) keeps far more energy above 5 kHz than the other devices:
-
 <p align="center">
   <img alt="Average normalised spectrum of cough clips per device. Curves agree below 5 kHz; above it Phone C keeps several dB more energy than the recorder and Phones A and B." src="figures/notebook/device_spectra.png" width="720">
 </p>
 
-<p align="center">
-  <img alt="Mel spectrograms of one cough cut from Phones A, B and C: the same event looks visibly different on each phone." src="figures/notebook/same_cough_three_phones.png" width="100%">
-</p>
-
-## 5. Data preparation pipeline
-
-Nothing in the Zambia release is pre-cut into coughs or pre-linked to labels; the file path is
-the only link between a sound and a person. The preparation therefore has five stages.
-
-### 5.1 Relabelling
-
-At the start of each session a staff member reads the participant ID aloud and then types it
-as the filename, so typos happen. We applied Zhang et al.'s **62 published filename
-corrections** (54 files changed), resolving chained entries (e.g. `0138 → 0838` and
-`0838 → 0831`) by looking each file up *once* by its original name. Files whose ID has no
-metadata row are dropped.
-
-### 5.2 Recording audit (our addition)
-
-The relabelling log does not catch everything: the release still contains the same participant
-and device stored twice, files whose folder site disagrees with the site in their ID, and IDs
-whose number appears under two site prefixes. Rather than "keep the first file found", we
-**audit every recording by cross-correlation**. Four devices recording the same session hear
-the same sounds at the same moments, so their waveforms line up closely; a file holding
-someone else's session lines up with nothing.
-
-1. Score 300 pairs of recordings from *different* participants to learn what "unrelated"
-   looks like (median similarity 0.038, 99th percentile 0.092). The match threshold is set
-   to **0.15**.
-2. Score every pair of a participant's recordings (peak of the normalised cross-correlation,
-   0 = unrelated, 1 = identical up to time shift and gain).
-3. For each participant, keep one file per device so that the largest possible group of
-   recordings all match each other.
-
-<p align="center">
-  <img alt="Left: similarity histogram. Different-participant pairs cluster near 0.04, same-participant pairs spread from 0.3 to 0.8, with the 0.15 threshold in the empty gap between them. Right: 357 participants consistent, 4 with some files excluded, 2 with a single recording." src="figures/notebook/audit_similarity.png" width="100%">
-</p>
-
-The two distributions are cleanly separated. The audit **confirmed 357 of 363 participants**
-and removed **seven foreign or unmatched files** (4 matched no other device of their
-participant, 3 were duplicates holding another session). Only 20 of 1,773 same-participant
-pairs fell below the threshold.
-
-### 5.3 Cough segmentation
-
-Sessions are cut into single coughs with **Zhang et al.'s CLAP-based extractor** [4, 15]:
-
-```
- 4 recordings of one session
-        │
- (1) ALIGN       shift every device so all four line up in time (cross-correlation)
-        │
- (2) DETECT      cut the reference recording into 2-s windows and ask CLAP, zero-shot:
-                 "white noise", "people talking" or "coughing sound"?
-                 skip the ID announcement and quiet windows
-        │
- (3) SINGLES     the first three groups of cough windows are the three single coughs;
-                 trim each to its loud part with the energy envelope
-        │
- (4) EPISODE     remaining cough windows form the multi-cough burst; find each cough as a
-                 peak in the energy envelope; keep it only if ≥ half the devices agree
-        │
- (5) KEEP        clips shorter than 1 s, cut at the SAME times on every device
-```
-
-<p align="center">
-  <img alt="Extractor on one participant. Top: the reference waveform with 2-second windows; green windows were labelled cough by CLAP, the first 10 seconds are skipped. Bottom: energy envelope with the three single coughs shaded blue and four episode coughs shaded orange." src="figures/notebook/segmentation_example.png" width="100%">
-</p>
-
-Because every device is cut at identical times, **clip *k* is the same physical cough on
-every phone**. That pairing is what makes the device analysis in [§9](#9-why-cough-features-transfer-poorly-embedding-analysis) possible.
-
-Our changes to the extractor move no cut point; they make it faster and record more:
-
-| Change | Effect |
-|---|---|
-| FFT-based cross-correlation instead of direct correlation | Same shift, about 100–200× faster on long sessions |
-| CLAP batched on GPU, only for windows passing the loudness gate | Same labels, much faster |
-| Per-device alignment score recorded | Suspect sessions can be reviewed |
-| Cough type (single vs episode) and artificial-join flag recorded | Available for later analysis |
-
-**Segmentation output:** 7,314 clips from 359 participants in 12.1 minutes; 4 participants
-yielded no clips, and no episode clip straddles an artificial join (0 of 3,991).
-
 <details>
-<summary><b>Segmentation quality checks</b></summary>
+<summary><b>More Zambia EDA</b> (age, cough duration, missingness, device coverage, session length)</summary>
 
-<p align="center">
-  <img alt="Four panels: clips per participant per device (mostly 5 to 9), clip length (all under 1 s), alignment scores of non-reference devices, and the split between single and episode coughs." src="figures/notebook/segmentation_qc.png" width="100%">
-</p>
+<p align="center"><img alt="TB prevalence by site and age distribution by TB status." src="figures/notebook/eda_prevalence_age.png" width="100%"></p>
+<p align="center"><img alt="Share answering yes by TB status, and reported cough duration within each TB group." src="figures/notebook/eda_symptoms_cough_duration.png" width="100%"></p>
+<p align="center"><img alt="Missing values per clinical variable: all nine model variables are almost complete." src="figures/notebook/eda_missingness.png" width="560"></p>
+<p align="center"><img alt="Which devices recorded each participant; most were recorded on all three phones." src="figures/notebook/eda_device_coverage.png" width="620"></p>
+<p align="center"><img alt="Session length per device, roughly 40 to 50 seconds for every device." src="figures/notebook/eda_session_length.png" width="620"></p>
+<p align="center"><img alt="Mel spectrograms of the same session on Phone A and Phone C: Phone A carries low-pitched background noise that Phone C does not." src="figures/session_phoneA_phoneC.png" width="620"></p>
 
-The lowest 2 % of alignment scores (≤ 0.268) are saved to `suspect_alignment.csv` for
-listening.
+All nine clinical variables are close to complete: 1,823 participants (205 TB-positive) have
+every variable and a label, matching Zhang et al.
 
 </details>
 
-### 5.4 Analysis cohort
+### 6.2 Data preparation pipeline
 
-Following Zhang et al., we keep **Chawama and Kanyama** (Chainda-South had a single
-TB-positive participant with audio) and **Phones A, B and C** (the recorder covered too few
-participants). Our cohort closely matches the published one:
+Nothing in the Zambia release is pre-cut into coughs or pre-linked to labels; the file path is
+the only link between a sound and a person.
 
-| Site | Phone | Participants | Clips | TB rate | Zhang et al.: participants / clips / TB rate |
-|---|---|---:|---:|---:|---|
-| Chawama | A | 108 | 632 | 9.3 % | 111 / 687 / 9 % |
-| Chawama | B | 101 | 589 | 9.9 % | 102 / 595 / 10 % |
-| Chawama | C | 108 | 629 | 9.3 % | 109 / 635 / 9 % |
-| Kanyama | A | 206 | 1,117 | 21.8 % | 207 / 1,158 / 22 % |
-| Kanyama | B | 212 | 1,155 | 22.2 % | 214 / 1,229 / 22 % |
-| Kanyama | C | 213 | 1,165 | 22.1 % | 214 / 1,205 / 22 % |
-
-**Reproduction cohort: 325 participants (57 TB-positive), 5,287 clips.**
-A stricter *paired cohort* of participants with clips on all three phones holds 299
-participants (55 TB-positive).
-
-### 5.5 From a cough clip to a model input
-
-1. **Pad or crop** each clip to **0.96 s** (the input length VGGish was trained on).
-2. **Mel spectrogram:** 25 ms windows every 10 ms, **64 mel bands from 100 to 8,000 Hz**,
-   converted to decibels → a `64 × 97` image (pitch × time).
-3. **Resize** to `96 × 64` (time × mel) for VGGish.
-
-The training set additionally goes through two steps, **on training participants only**:
-
-- **Balancing.** Clips are oversampled so every combination of phone × site × TB status is
-  equally common (917 clips per cell, 11,004 in total). Otherwise the model could learn
-  "Kanyama means more TB".
-- **Augmentation.** Each oversampled copy is altered with a random mix of pitch shift
-  (±4 semitones), piecewise speed perturbation (±10 %) and additive noise (10 dB SNR).
+1. **Relabelling.** Zhang et al.'s **62 published filename corrections** (54 files changed),
+   with chained entries resolved by looking each file up once by its original name.
+2. **Recording audit (our addition).** Four devices recording one session line up closely under
+   cross-correlation; a file holding someone else's session lines up with nothing. With a match
+   threshold of 0.15 (unrelated pairs: median 0.038, 99th percentile 0.092), the audit
+   **confirmed 357 of 363 participants** and removed **seven foreign or unmatched files**.
+3. **Cough segmentation** with Zhang et al.'s CLAP-based extractor [4, 15]: align the devices,
+   label 2-s windows zero-shot as cough / talking / noise, trim the three single coughs and the
+   multi-cough burst, and keep clips under 1 s **cut at the same times on every device**, so clip
+   *k* is the same physical cough on every phone. Output: 7,314 clips from 359 participants.
+4. **Analysis cohort.** Chawama and Kanyama, Phones A, B and C: **325 participants (57 TB),
+   5,287 clips**, within a few percent of Zhang et al.'s published counts.
+5. **Model input.** Pad or crop to 0.96 s; 64-band log-mel spectrogram (25 ms window, 10 ms hop,
+   100–8,000 Hz) → `64 × 97`, resized to `96 × 64`. Training clips only are balanced over
+   phone × site × TB (917 per cell) and augmented (pitch shift, speed perturbation, noise).
 
 <p align="center">
-  <img alt="Log-mel spectrogram of one clean test clip next to an augmented training copy of the same clip; the augmented copy has added background noise and slightly shifted harmonics." src="figures/notebook/mel_clean_vs_augmented.png" width="720">
+  <img alt="Similarity histogram from the recording audit: different-participant pairs cluster near 0.04, same-participant pairs spread from 0.3 to 0.8, with the 0.15 threshold in the empty gap; 357 participants consistent." src="figures/notebook/audit_similarity.png" width="100%">
 </p>
-
-*What the model sees.* Time runs left to right over 0.96 s, mel frequency bottom to top, and
-brightness is loudness in dB. The bright bands below 1 kHz and around 2 kHz are the cough's
-harmonic structure. The right-hand copy is a training-only augmentation of the same clip.
-
-## 6. Models
-
-The study design has several arms. Two are complete on Zambia, and they are the subject of
-this README.
-
-| Arm | Inputs | Model | Status |
-|---|---|---|---|
-| **B** | 9 questionnaire answers | Regularised logistic regression | ✅ Complete |
-| **C1 (audio-only ablation)** | Cough clips | **VGGish**, fine-tuned | ✅ Complete |
-| A1 | Cough clips | MFCC network | Planned (CODA) |
-| A2 / A3 | Cough clips | Frozen HeAR / OPERA embeddings | Next |
-| A4 | Cough clips | HeAR + LoRA | Planned (CODA) |
-| **A (fusion)** | Questionnaire + cough | Two-layer MLP, or a single out-of-fold audio score added to the logistic regression (a zero audio weight recovers B) | Next |
-
-We started with VGGish rather than the proposed MFCC network because a published Zambia result
-exists for it, which provides a **reproduction check** of the whole pipeline.
-
-### 6.1 Model B: questionnaire only
-
-A logistic regression on nine variables mapped exactly as in Zhang et al.: age, sex, smoking,
-HIV status, previous TB, cough duration (in days), fever, weight loss and night sweats.
-`C ∈ {0.01, 0.1, 1, 10, 100}` and `max_iter ∈ {100, 500, 1000}` are tuned by 4-fold
-cross-validation inside each training fold. Age and cough duration are standardised **inside
-each training fold** (Zhang et al. standardised on all data before splitting).
-
 <p align="center">
-  <img alt="Baseline B coefficients averaged over folds: cough duration, male sex and night sweats push predicted TB risk up most strongly; age and previous TB have small negative coefficients." src="figures/notebook/baseline_b_coefficients.png" width="560">
+  <img alt="Cough extractor on one participant: CLAP-labelled cough windows on the waveform, then the energy envelope with three single coughs shaded blue and four burst coughs shaded orange." src="figures/notebook/segmentation_example.png" width="100%">
 </p>
 
-Cough duration, male sex and night sweats carry the largest positive coefficients. The wide
-error bars on sex, HIV status and previous TB show how much the fit varies between folds of a
-325-person cohort.
+<details>
+<summary><b>Segmentation quality checks, fold composition and the model input</b></summary>
 
-### 6.2 Model C1: VGGish cough model
+<p align="center"><img alt="Clips per participant per device, clip length under 1 s, alignment scores, and the split between single and burst coughs." src="figures/notebook/segmentation_qc.png" width="100%"></p>
+<p align="center"><img alt="Who is in each test fold for repeat 1: every fold holds a similar mix of sites and TB status." src="figures/notebook/folds_composition.png" width="620"></p>
+<p align="center"><img alt="Log-mel spectrogram of one clean test clip next to an augmented training copy of the same clip." src="figures/notebook/mel_clean_vs_augmented.png" width="720"></p>
+
+</details>
+
+### 6.3 Model C1: fine-tuned VGGish
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/architecture-dark.svg">
   <img alt="Pipeline and architecture. Session recordings from four devices are relabelled and audited, cut into cough clips under one second, turned into 64 by 97 log-mel spectrograms, balanced and augmented for training only, and resized to 96 by 64. VGGish applies six 3 by 3 convolutions (64, 128, 256, 256, 512, 512 channels) with four max-pool layers, flattens to 12,288 values, and passes them through fully connected layers of 4,096, 4,096 and 128 units. A head of 16 units then 1 unit outputs the TB logit." src="figures/architecture-light.svg" width="100%">
 </picture>
 
-**VGGish** [6] is a VGG-style convolutional network trained by Google on AudioSet (YouTube
-sound clips) to produce a 128-dimensional audio embedding. We load the pretrained weights and
-**fine-tune the whole network** on cough clips, with a small head on top that outputs one TB
-logit. Each repeated convolutional unit is:
-
-```
-Conv2d 3×3 (stride 1, padding 1) → ReLU          ×1, ×1, ×2, ×2 per stage
-MaxPool2d 2×2                                     after each stage
-```
+**VGGish** [6] is a VGG-style CNN trained by Google on AudioSet to produce a 128-d audio
+embedding. We load the pretrained weights and **fine-tune the whole network**, with a small head
+that outputs one TB logit.
 
 | Layer | Output shape (C × T × F) | Parameters |
 |---|---|---:|
@@ -413,157 +333,65 @@ MaxPool2d 2×2                                     after each stage
 | Head: Linear (TB logit) | 1 | 17 |
 | **Total** | | **72,143,265** |
 
-The backbone holds 72,141,184 parameters (4.50 M convolutional, 67.64 M fully connected) and
-the head 2,081. All 18 pretrained tensors are loaded **by name** with a strict check.
-
-**Design choices.**
-
-- **Pretrained VGGish, fine-tuned end to end.** Only 57 TB-positive participants are available,
-  far too few to learn audio features from scratch; AudioSet pretraining supplies generic
-  acoustic features. It also matches the published Zambia baseline we reproduce.
-- **A tiny head (128 → 16 → 1) with dropout 0.5.** Keeps the number of newly initialised
-  parameters small, and the backbone and head use different learning rates.
-- **Participant-level scoring.** A participant's score is the **median** probability over all
-  their clips and all four inner-fold models, which is robust to the occasional badly cut clip.
-
-### 6.3 Training recipe (C1)
-
-| Setting | Value |
+| Training setting | Value |
 |---|---|
-| Loss | `BCEWithLogitsLoss` with `pos_weight = #neg / #pos` (class-weighted) |
+| Loss | `BCEWithLogitsLoss` with `pos_weight = #neg / #pos` |
 | Optimiser | Adam; lr 1e-4 for VGGish, 1e-5 for the head |
 | Scheduler | `ReduceLROnPlateau` on validation AUROC, factor 0.5, patience 2 |
-| Batch size | 32 |
-| Epochs | Up to 40, early stopping after 5 epochs without improvement in validation AUROC |
-| Regularisation | Mixup (α = 0.1), dropout 0.5 in the head, balanced and augmented training pool |
-| Model selection | Best-epoch weights restored (a true copy of the state dict) |
-| Ensemble | 4 inner-fold models per outer test fold → **40 models** in total (2 repeats × 5 folds × 4) |
-| Hardware | Kaggle GPU (notebook configured for a single T4); about 5–8 min per outer fold |
-| Seed | 42 (fold-specific seeds derived from it) |
+| Batch size / epochs | 32 / up to 40, early stopping after 5 epochs without improvement |
+| Regularisation | Mixup (α = 0.1), dropout 0.5, balanced and augmented training pool |
+| Ensemble | 4 inner-fold models per outer fold → 40 models (2 repeats × 5 folds × 4) |
+| Scoring | Participant score = median over all their clips and the 4 inner models |
+| Hardware | Kaggle GPU (T4), about 5–8 min per outer fold |
 
-**Three defects fixed in the published training code.** Between our two full runs we found and
-fixed three problems in the reference implementation; please keep them in mind when comparing
-numbers:
+**Three defects fixed in the published training code:** (1) pretrained tensors were copied by
+*shape*, leaving four VGGish bias vectors random and giving four others another layer's bias;
+we load by name with a strict check. (2) The "best" epoch was never restored, because the saved
+`state_dict()` pointed at the live weights; we save a deep copy. (3) Test clips were augmented
+and duplicated; we test on clean clips only.
 
-1. **Weight loading by shape.** Pretrained tensors were copied into the model by matching
-   *shapes*. Several layers share a bias shape, so **four VGGish bias vectors stayed random and
-   four others received another layer's bias**. We load by name and verify all 18 tensors.
-2. **Best epoch never restored.** The "best" weights were saved with `model.state_dict()`
-   without copying; in PyTorch that dictionary points at the live weights, so "restoring" it
-   restored the *last* epoch. We save a deep copy.
-3. **Test clips augmented and duplicated.** The balanced, augmented set was built *before*
-   splitting, so test clips were augmented and oversampled. We augment training clips only and
-   **test on clean clips**.
-
-## 7. Evaluation protocol
-
-- **Participant-disjoint folds.** Participants, never individual clips, are split into
-  **5 folds stratified by site and TB status, repeated twice** (10 test sets). If one person's
-  coughs appeared in both training and test sets, a model could recognise the *person* rather
-  than the disease.
-- **Shared folds.** Every model uses the **same saved folds** (`folds.csv`), so every
-  comparison is *paired*: the same people, scored by two models.
-- **Nested validation.** Within each training fold, 4 inner folds provide validation sets for
-  early stopping (audio) and hyperparameter search (clinical).
-
-<p align="center">
-  <img alt="Stacked bar chart of who is in each test fold for repeat 1: every fold holds a similar mix of Chawama and Kanyama participants, TB-positive and TB-negative." src="figures/notebook/folds_composition.png" width="620">
-</p>
-
-**Metrics.**
-
-| Metric | Meaning |
-|---|---|
-| **AUROC** | Probability that a randomly chosen TB patient receives a higher score than a randomly chosen non-TB patient; 0.5 is chance. Reported as mean ± s.d. over the 10 test folds. |
-| **Specificity at 90 % sensitivity** | Share of non-TB patients spared a laboratory test when the model catches nine of every ten TB cases (the WHO triage target is ≥ 70 %). |
-| **Paired Δ AUROC** | Difference between two models on the same participants, with a **DeLong** 95 % CI and p-value [14], cross-checked by a 2,000-sample bootstrap. |
-
-## 8. Results
-
-### 8.1 Baseline reproduction
+### 6.4 Results: cough alone ties with the questionnaire
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/baseline-auroc-dark.svg">
-  <img alt="Bar chart of AUROC, mean and standard deviation over folds. Questionnaire on all 1,823 participants: ours 0.759, published 0.767. Questionnaire on the 325-participant audio cohort: ours 0.749. Cough VGGish on the cohort: ours 0.740, published 0.755. All of our values lie within one standard deviation of the published ones." src="figures/baseline-auroc-light.svg" width="100%">
+  <img alt="AUROC, mean and standard deviation over folds. Questionnaire on all 1,823 participants: ours 0.759, published 0.767. Questionnaire on the 325-participant cohort: 0.749. Cough VGGish on the cohort: ours 0.740, published 0.755." src="figures/baseline-auroc-light.svg" width="100%">
 </picture>
 
-| Model | Participants (TB+) | AUROC (ours) | AUROC (Zhang et al. [4]) | Spec. @ 90 % sens. |
+| Model | Participants (TB) | AUROC (ours) | Zhang et al. [4] | Spec. @ 90 % sens. |
 |---|---|---:|---:|---:|
-| B · questionnaire, all participants | 1,823 (205) | 0.759 ± 0.029 | 0.767 ± 0.025 | — |
-| B · questionnaire, audio cohort | 325 (57) | **0.749 ± 0.094** | — | 0.358 |
-| C1 · cough, VGGish | 325 (57) | **0.740 ± 0.086** | 0.755 ± 0.056 | 0.354 |
+| B · questions, all participants | 1,823 (205) | 0.759 ± 0.029 | 0.767 ± 0.025 | — |
+| B · questions, audio cohort | 325 (57) | **0.749 ± 0.094** | — | 0.358 |
+| C1 · cough, fine-tuned VGGish | 325 (57) | **0.740 ± 0.086** | 0.755 ± 0.056 | 0.354 |
 
-Both baselines land **within one standard deviation of the published values**, and every
-number comes from our own runs. Note that the published audio and clinical numbers were
-measured on different groups of people (about 650 versus 1,823), so they cannot be compared
-with each other directly; ours can.
+| Repeat | AUROC cough | AUROC questions | Δ (cough − questions) | DeLong 95 % CI | p |
+|---|---:|---:|---:|---|---:|
+| 1 | 0.751 | 0.731 | +0.020 | [−0.069, 0.109] | 0.657 |
+| 2 | 0.713 | 0.717 | −0.004 | [−0.094, 0.086] | 0.929 |
 
-### 8.2 Cough alone ties with the questionnaire
-
-<p align="center">
-  <img alt="ROC curves of the two baselines on pooled test predictions of repeat 1. Questionnaire only: AUROC 0.731, 95 % CI 0.66 to 0.80. Cough only, VGGish: 0.751, 95 % CI 0.69 to 0.82. The curves nearly overlap; a dotted line marks 90 % sensitivity." src="figures/baseline_roc.png" width="520">
-</p>
-
-Paired comparison on the **same 325 participants** (Δ = cough − questionnaire):
-
-| Repeat | AUROC cough | AUROC questionnaire | Δ | DeLong 95 % CI | Bootstrap 95 % CI | p |
-|---|---:|---:|---:|---|---|---:|
-| 1 | 0.751 | 0.731 | +0.020 | [−0.069, 0.109] | [−0.067, 0.112] | 0.657 |
-| 2 | 0.713 | 0.717 | −0.004 | [−0.094, 0.086] | [−0.098, 0.087] | 0.929 |
-
-The two models are statistically indistinguishable. At 90 % sensitivity both reach only
-**35–36 % specificity**, so either model would still send about **64 of every 100 non-TB
-patients** for a laboratory test, well short of the WHO's 70 % target. The cough carries some
-TB information, but no more than the questionnaire, which raises the question of what *else*
-its features carry.
+Both baselines land within one standard deviation of the published values, and the two models
+are statistically indistinguishable on the same people. At 90 % sensitivity both clear only
+**35–36 %** of non-TB patients, far short of the WHO's 70 %. Our two full runs differed mainly in
+fold assignment, yet the cough model moved from 0.761 to 0.740: with 57 TB cases, differences
+below about 0.05 AUROC cannot be detected.
 
 <p align="center">
-  <img alt="Three panels for baseline C1: pooled ROC for both models; C1 AUROC by phone (about 0.72 to 0.74 for each phone) and by site (Chawama about 0.66 with a wide spread, Kanyama about 0.75); and AUROC per test fold for B and C1, with dotted lines at the published values." src="figures/notebook/baseline_c1_results.png" width="100%">
+  <img alt="ROC curves of the two Zambia baselines on pooled test predictions of repeat 1: questionnaire 0.731, cough 0.751; the curves nearly overlap." src="figures/baseline_roc.png" width="480">
 </p>
-
-C1 performs similarly on each phone, but its Chawama estimate is very noisy (only 10
-TB-positive participants).
-
-### 8.3 The same cough, a different score on each phone
-
-Because clip *k* is the same physical cough on every phone, we can score each participant
-separately from their Phone A, B and C clips. A model listening only to the cough would put
-every point on the diagonal.
-
 <p align="center">
-  <img alt="Scatter plots of per-participant scores on pairs of phones (A vs B, A vs C, B vs C), TB-positive participants in pink. Points scatter widely around the diagonal; mean absolute differences are 0.088, 0.105 and 0.075." src="figures/notebook/phone_agreement.png" width="100%">
+  <img alt="Per-participant scores on pairs of phones for the same coughs scatter widely around the diagonal; mean absolute differences 0.088, 0.105 and 0.075." src="figures/notebook/phone_agreement.png" width="100%">
 </p>
 
-The fine-tuned model scores the same participants differently on each phone, by **0.075 to
-0.105 on average** (on a 0–1 scale), even though every model was trained on all three phones.
+The same participants receive different scores on each phone, by **0.075–0.105 on average**,
+even though every model was trained on all three phones.
 
-### 8.4 Sensitivity to the data split
+### 6.5 What the cough features encode (notebook 02)
 
-Our two full runs differ mainly in fold assignment (the audit and fixes changed a dozen files
-but reshuffled every fold). Yet the cough model moved from **0.761 to 0.740**, and an apparent
-triage advantage for cough (42 % vs 24 % specificity at 90 % sensitivity) **disappeared**
-(35 % vs 36 %). With 57 TB-positive participants, differences below about **0.05 AUROC cannot
-be detected**, and Chawama, with only 10 TB-positive participants, is too small to analyse on
-its own.
-
-## 9. Why cough features transfer poorly: embedding analysis
-
-The second notebook ([`notebooks/02_embedding_analysis.ipynb`](notebooks/02_embedding_analysis.ipynb))
-asks what the cough features actually encode. Every clip is represented in two ways:
-
-- **Spectrogram summary:** mean and standard deviation of each of the 64 mel bands (128
-  numbers, nothing learned).
-- **VGGish embedding:** the 128-d output of the **pretrained** VGGish, before any TB
-  fine-tuning.
-
-A linear classifier, always **tested on participants it never saw** (5-fold
-`StratifiedGroupKFold`), then tries to recover the phone or the TB status.
-
-### 9.1 Recording conditions dominate the features
+A linear classifier, always tested on unseen participants, tries to recover the phone or the
+TB status from two kinds of features:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/probe-dark.svg">
-  <img alt="Grouped bar chart of linear-probe AUROC on unseen participants. Spectrogram summary: phone 0.994, TB 0.665. VGGish embedding: phone 0.912, TB 0.651. A dashed line marks chance at 0.5." src="figures/probe-light.svg" width="100%">
+  <img alt="Linear-probe AUROC on unseen Zambia participants. Spectrogram summary: phone 0.994, TB 0.665. Pretrained VGGish: phone 0.912, TB 0.651." src="figures/probe-light.svg" width="100%">
 </picture>
 
 | Features | Phone accuracy (chance 0.33) | Phone AUROC | TB AUROC per clip | TB AUROC per person |
@@ -571,185 +399,432 @@ A linear classifier, always **tested on participants it never saw** (5-fold
 | Spectrogram summary | 0.955 | **0.994** | 0.642 | 0.665 |
 | VGGish embedding (pretrained) | 0.772 | **0.912** | 0.601 | 0.651 |
 
-The phone is recovered **almost perfectly** from simple spectrogram statistics and well from
-VGGish, whereas TB status is recovered only weakly. A two-dimensional t-SNE map of all 5,287
-VGGish embeddings tells the same story:
-
 <table>
   <tr>
-    <td width="50%"><img alt="t-SNE map of pretrained VGGish embeddings coloured by phone: Phone C forms its own region, Phones A and B overlap." src="figures/embedding_by_phone.png" width="100%"></td>
+    <td width="50%"><img alt="t-SNE of pretrained VGGish embeddings coloured by phone: Phone C forms its own region." src="figures/embedding_by_phone.png" width="100%"></td>
     <td width="50%"><img alt="The same t-SNE map coloured by TB status: TB-positive clips are scattered across the whole map." src="figures/embedding_by_tb.png" width="100%"></td>
   </tr>
-  <tr>
-    <td align="center"><b>(a)</b> Coloured by phone</td>
-    <td align="center"><b>(b)</b> Coloured by TB status</td>
-  </tr>
+  <tr><td align="center"><b>(a)</b> Coloured by phone</td><td align="center"><b>(b)</b> Coloured by TB status</td></tr>
 </table>
 
-Phone C occupies its own region, Phones A and B overlap (consistent with their similar spectra
-in [§4.2](#42-what-does-the-audio-look-like)), and TB-positive clips are spread throughout.
+- **Same cough, different phone.** For spectrogram statistics, moving one cough to another phone
+  changes it as much as swapping in a different person (median cosine distance 0.645 vs 0.626).
+- **Site check.** Kanyama's TB rate is more than twice Chawama's, and the features partly reveal
+  the clinic (AUROC 0.73). Within Kanyama alone, where that shortcut gives no advantage, TB AUROC
+  stays at **0.65–0.69**: the TB signal is real, although weak.
+- **Unseen phone.** Removing a phone from training lowers TB AUROC on it, most for Phone C
+  (−0.053 with spectrogram summaries, −0.029 with VGGish).
 
-### 9.2 Does changing the phone change a cough more than changing the person?
+<details>
+<summary><b>Zambia embedding-analysis figures and tables</b></summary>
 
-Only a simultaneously recorded dataset can ask this. We compare cosine distances between four
-kinds of clip pairs:
+<p align="center"><img alt="Violin plots of feature distances for four pair types, for spectrogram summaries and VGGish embeddings." src="figures/notebook/same_cough_distances.png" width="100%"></p>
 
-<p align="center">
-  <img alt="Violin plots of feature distance for four pair types, for spectrogram summaries and VGGish embeddings. For VGGish, the same cough on two phones is as far apart as two different coughs of the same person on the same phone." src="figures/notebook/same_cough_distances.png" width="100%">
-</p>
-
-| Pair type (median cosine distance) | Spectrogram summary | VGGish embedding |
+| Pair type (median cosine distance) | Spectrogram summary | VGGish |
 |---|---:|---:|
 | Same cough, different phone | 0.645 | 0.647 |
 | Same person and phone, different cough | 0.198 | 0.647 |
 | Different people, same phone | 0.626 | 0.945 |
 | Different people, different phones | 1.175 | 1.051 |
-| Same-cough pairs farther apart than a typical different-person pair | 51.3 % | 17.4 % |
 
-For spectrogram statistics, **moving one cough to another phone changes it as much as
-swapping in a different person** (0.645 vs 0.626). VGGish is more robust, but even there the
-same cough on two phones is as far apart as two different coughs from one person. The effect
-is strongest between Phone A and Phone C (median 1.005 for spectrogram summaries, against 0.317
-for A vs B).
+<p align="center"><img alt="Site check: AUROC for recovering the site, TB across both sites, and TB within each clinic, with a dotted line at the 0.60 a pure site shortcut would give." src="figures/notebook/site_check.png" width="720"></p>
 
-### 9.3 Is the weak TB signal real, or is it the clinic?
-
-Kanyama's TB rate is more than twice Chawama's, and the features partly reveal the clinic, so
-a model could seem to detect TB by recognising Kanyama. Measuring AUROC **within** each clinic
-removes that shortcut:
-
-| Features | Recover site (AUROC) | TB, both sites | TB from site alone | TB within Chawama (10 TB+) | TB within Kanyama (47 TB+) |
-|---|---:|---:|---:|---:|---:|
-| Spectrogram summary | 0.729 | 0.664 | 0.599 | 0.476 | **0.692** |
-| VGGish embedding | 0.591 | 0.652 | 0.599 | 0.572 | **0.651** |
-
-<p align="center">
-  <img alt="Bar chart of the site check: AUROC for recovering the site, TB across both sites, and TB within each clinic, for both feature types, with a dotted line at the 0.60 AUROC a pure site shortcut would give." src="figures/notebook/site_check.png" width="720">
-</p>
-
-Within Kanyama alone, where the site shortcut gives no advantage, TB AUROC stays at
-**0.65–0.69**: the TB signal is **real, although weak**. The Chawama estimate rests on 10
-TB-positive participants and is not interpretable.
-
-### 9.4 A first look at an unseen phone
-
-As a preview of device hold-out, a linear probe is trained either on all three phones
-("seen") or on the other two only ("unseen"), and tested on the same participants' clips from
-the held-out phone:
-
-| Features | Held-out phone | TB AUROC, phone seen | TB AUROC, phone unseen | Change | Mean score shift |
+| Features | Held-out phone | TB AUROC, seen | TB AUROC, unseen | Change | Score shift |
 |---|---|---:|---:|---:|---:|
 | Spectrogram summary | A | 0.697 | 0.671 | −0.026 | 0.064 |
 | Spectrogram summary | B | 0.693 | 0.696 | +0.003 | 0.044 |
-| Spectrogram summary | C | 0.673 | 0.620 | **−0.053** | **0.126** |
-| VGGish embedding | A | 0.667 | 0.642 | −0.025 | 0.043 |
-| VGGish embedding | B | 0.655 | 0.651 | −0.004 | 0.037 |
-| VGGish embedding | C | 0.604 | 0.575 | −0.029 | 0.099 |
+| Spectrogram summary | C | 0.673 | 0.620 | −0.053 | 0.126 |
+| VGGish | A | 0.667 | 0.642 | −0.025 | 0.043 |
+| VGGish | B | 0.655 | 0.651 | −0.004 | 0.037 |
+| VGGish | C | 0.604 | 0.575 | −0.029 | 0.099 |
 
-Removing a phone from training lowers TB AUROC on that phone, and the drop and the shift in
-predicted risk are largest for **Phone C**, the phone whose recordings differ most from the
-others (§9.1–9.2).
+</details>
+
+---
+
+## 7. Part II · Kenya TBscreen: a second country
+
+TBscreen [5] recorded coughs in a single clinic room in Nairobi with three devices at once: a
+**Pixel phone**, a **boundary (codec) microphone** and a **Yeti studio microphone**. It is a
+**case-control** study (TB against other respiratory illness), so its TB rate (69 %) and absolute
+AUROCs are not comparable with a triage population; the gain Δ and the transfer results are.
+
+### 7.1 Data and preparation
+
+- **148 labelled participants** (102 TB, 46 non-TB). All nine questions pass the missingness
+  check (gaps between TB groups ≤ 8 points).
+- **34,153 cough spectrograms** (32,943 natural "passive" coughs, 1,210 forced coughs). TBscreen
+  ships precomputed VGGish input spectrograms, so we download those (~0.5 GB) instead of 795 GB of
+  audio. We **verified them against the raw audio** with our own port of Google's VGGish front end:
+  median correlation **0.9999** over 37 coughs.
+- Of the passive coughs, 3,235 exist on all three devices and 5,641 on two, which enables a
+  same-cough, different-device comparison as in Zambia.
+
+<p align="center">
+  <img alt="Questionnaire answers by TB status in Kenya beside Zambia. In Kenya, HIV and previous TB are far more common among people without TB." src="figures/kenya/questionnaire_kenya_vs_zambia.png" width="100%">
+</p>
+
+In Kenya, HIV and previous TB are **far more common among people without TB**, the reverse of
+what a triage rule assumes; the controls have other respiratory illnesses.
+
+<details>
+<summary><b>More Kenya EDA</b> (coughs per participant, Xpert grades, device pairing)</summary>
+
+<p align="center"><img alt="Cough files per participant by device and cough type, and Xpert result grade among TB patients." src="figures/kenya/coughs_per_participant_xpert.png" width="100%"></p>
+<p align="center"><img alt="Which devices hold each passive cough: most coughs exist on one device, thousands on two or three." src="figures/kenya/device_pairing.png" width="620"></p>
+
+</details>
+
+### 7.2 Baselines and reproduction
+
+All 148 participants, five stratified folds (the published TBscreen T1 fold files were not
+attached in this run, so the notebook generated its own participant-level folds):
+
+| Features | B · questions | Cough only | A · questions + cough | Δ = A − B (95 % CI) | p |
+|---|---:|---:|---:|---|---:|
+| Spectrogram summary | 0.714 | 0.638 | 0.686 | −0.029 (−0.05 to −0.01) | 0.01 |
+| VGGish (pretrained) | 0.714 | **0.711** | 0.709 | −0.006 (−0.04 to +0.03) | 0.76 |
+
+| Fine-tuned VGGish | Per cough | Per participant |
+|---|---:|---:|
+| TBscreen, published [5] | 0.661 ± 0.063 | 0.744 ± 0.138 |
+| **Ours** (5 folds) | **0.658 ± 0.107** | **0.702 ± 0.152** |
+
+Our fine-tuned VGGish lands on the published per-cough result. In Kenya the pretrained VGGish
+cough model matches the questionnaire (0.711 vs 0.714), yet **combining them adds nothing**, and
+with spectrogram summaries the combination is significantly *worse* than the questions alone.
+
+<p align="center">
+  <img alt="Kenya ROC curves per participant for questionnaire, audio and combined models, and per-cough audio AUROC by device." src="figures/kenya/baseline_roc_by_device.png" width="100%">
+</p>
+
+### 7.3 Device analysis: Kenya is the exception
+
+| Features | Device accuracy (chance 0.33) | Device AUROC | TB AUROC per cough | TB AUROC per person |
+|---|---:|---:|---:|---:|
+| Spectrogram summary | 0.542 | 0.728 | 0.591 | 0.630 |
+| VGGish (pretrained) | 0.480 | **0.666** | 0.613 | **0.712** |
+
+Recorded in one controlled room, Kenya is the one setting where the device is *harder* to
+recover than TB. The same cough on two devices stays close (median cosine distance 0.073 for
+spectrogram summaries vs 1.0 for two different people), the opposite of Zambia's phones.
+
+<p align="center">
+  <img alt="t-SNE of Kenya coughs coloured by device, with devices well mixed, and by TB status." src="figures/kenya/tsne_device_tb.png" width="100%">
+</p>
+
+<details>
+<summary><b>Same-cough distances, unseen device, natural vs forced coughs</b></summary>
+
+<p align="center"><img alt="Violin plots of feature distances in Kenya: same cough on two devices is much closer than any other pair type." src="figures/kenya/same_cough_distances.png" width="100%"></p>
+
+| Features | Held-out device | TB AUROC, seen | TB AUROC, unseen | Change | Score shift |
+|---|---|---:|---:|---:|---:|
+| Spectrogram summary | codec | 0.598 | 0.618 | +0.020 | 0.054 |
+| Spectrogram summary | pixel | 0.620 | 0.545 | −0.075 | 0.059 |
+| Spectrogram summary | yeti | 0.688 | 0.636 | −0.052 | 0.038 |
+| VGGish | codec | 0.626 | 0.624 | −0.002 | 0.032 |
+| VGGish | pixel | 0.707 | 0.637 | −0.070 | 0.050 |
+| VGGish | yeti | 0.727 | 0.725 | −0.002 | 0.035 |
+
+<p align="center"><img alt="Unseen-device test in Kenya: removing the Pixel phone from training lowers TB AUROC on it the most." src="figures/kenya/unseen_device.png" width="620"></p>
+
+**Natural vs forced coughs.** Only 48 participants gave both types, and only 7 of them are
+non-TB; every cell of the transfer matrix is below 0.5, so this comparison is **inconclusive**
+and has been dropped from the plan.
+
+<p align="center"><img alt="Cough-type transfer matrix on 48 participants: all four AUROCs below 0.5." src="figures/kenya/cough_type_transfer.png" width="480"></p>
+
+</details>
+
+### 7.4 Zambia ↔ Kenya: does a model travel between countries?
+
+The Zambia clips are passed through the **identical** front end (centred in one second of zeros,
+as TBscreen padded its clips) and the pretrained VGGish linear probe, so these Zambia numbers
+differ from the fine-tuned model in Part I.
+
+| Setting | Test people (TB) | B · questions | Cough only | A · both | Δ = A − B (95 % CI) |
+|---|---|---:|---:|---:|---|
+| Zambia, within (5-fold) | 325 (57) | 0.736 | 0.675 | 0.755 | +0.019 (−0.01 to +0.04) |
+| Kenya, within (5-fold) | 148 (102) | 0.714 | 0.711 | 0.709 | −0.006 (−0.04 to +0.03) |
+| Trained in Zambia → tested in Kenya | 148 (102) | 0.660 | **0.551** | 0.644 | −0.016 (−0.05 to +0.01) |
+| Trained in Kenya → tested in Zambia | 325 (57) | 0.683 | **0.585** | 0.679 | −0.003 (−0.02 to +0.02) |
+
+Moving between the countries, the questions lose about 0.05 while the cough loses **0.09 to
+0.16** and falls close to chance. A linear probe tells a Zambian cough from a Kenyan one at
+**AUROC 0.986**. The two datasets differ in country, devices, protocol, clip preparation *and*
+study design, so this shows that transfer fails, not which difference causes it; CODA isolates
+the country.
+
+<p align="center">
+  <img alt="Within versus across countries: questionnaire, audio and combined AUROC for Zambia within, Kenya within, Zambia to Kenya and Kenya to Zambia; audio drops close to 0.5 across countries." src="figures/kenya/zambia_kenya_transfer.png" width="100%">
+</p>
+<p align="center">
+  <img alt="t-SNE of Zambia and Kenya coughs through the same front end: coloured by country, Zambia's coughs gather in their own region of a map dominated by Kenya's more numerous coughs; coloured by TB status, the positive cases are spread throughout." src="figures/kenya/tsne_zambia_vs_kenya.png" width="100%">
+</p>
+
+---
+
+## 8. Part III · CODA: leave-one-country-out
+
+CODA is the heart of the study. Every country used **the same app and the same 0.5 s clip
+format**, so differences between countries cannot be blamed on how the data were prepared.
+
+### 8.1 Participants and held-out groups
+
+1,105 participants (297 TB) in the clinical tables; **1,082 with coughs (291 TB)** and
+**9,772 solicited coughs**, all recorded at 44.1 kHz and resampled to 16 kHz. CODA's own
+`tb_status` agrees with the microbiological reference standard for 100 % of participants.
+
+| Country | Participants | TB | TB rate | Coughs | Median coughs / person |
+|---|---:|---:|---:|---:|---:|
+| Uganda (UG) | 242 | 81 | 33.5 % | 2,166 | 7 |
+| Philippines (PH) | 198 | 19 | 9.6 % | 1,356 | 6 |
+| Vietnam (VN) | 163 | 66 | 40.5 % | 1,791 | 10 |
+| Madagascar (MG) | 159 | 76 | 47.8 % | 1,293 | 6 |
+| South Africa (SA) | 137 | 28 | 20.4 % | 1,119 | 7 |
+| India (IN) | 119 | 13 | 10.9 % | 1,043 | 7 |
+| Tanzania (TZ) | 87 | 14 | 16.1 % | 1,004 | 10 |
+
+A held-out group needs at least 15 TB cases for a stable AUROC, so **India and Tanzania are
+merged**, giving six held-out groups (IN + TZ, MG, PH, SA, UG, VN).
+
+<p align="center">
+  <img alt="CODA participants and TB cases per country, solicited coughs per participant, and cough-detector confidence (all above 0.85)." src="figures/coda/participants_by_country.png" width="100%">
+</p>
+<p align="center">
+  <img alt="CODA questionnaire answers by TB status: fever, weight loss, night sweats, long cough and male sex are more common with TB." src="figures/coda/questionnaire_by_tb.png" width="560">
+</p>
+
+### 8.2 Random split: the in-distribution reference
+
+Five participant folds that mix all countries, which is how most published cough results are
+measured.
+
+| Representation | B · questions | Cough only | A · both | Δ = A − B |
+|---|---:|---:|---:|---|
+| MFCC summary | 0.731 | 0.676 | 0.744 | +0.013 |
+| Spectrogram summary | 0.731 | 0.678 | 0.745 | +0.014 |
+| VGGish (pretrained) | 0.731 | **0.684** | 0.745 | **+0.014 (+0.00 to +0.02), p = 0.01** |
+| Extended questions (+ VGGish) | **0.810** | — | 0.812 | +0.002 |
+
+The cough alone (0.684) sits just below the challenge teams' 0.69–0.74 with a much simpler
+model. The nine shared questions reach 0.731, and CODA's four extra variables lift the questions
+alone to **0.810**, already inside the challenge's range for cough *plus* clinical data.
+
+### 8.3 Leave-one-country-out: the main experiment
+
+For each held-out group, all three models are trained on the **other** countries only. Nothing
+about the held-out country (scaling, imputation, threshold) is used in training.
+
+| Held-out | People | TB | B | Cough | A | Δ = A − B (95 % CI) | A: sens / spec, frozen threshold |
+|---|---:|---:|---:|---:|---:|---|---|
+| IN + TZ | 205 | 27 | 0.691 | 0.528 | 0.686 | −0.005 (−0.04 to +0.03) | 0.93 / 0.22 |
+| MG | 157 | 75 | 0.762 | **0.434** | 0.685 | **−0.076 (−0.12 to −0.04)** | 1.00 / **0.00** |
+| PH | 191 | 19 | 0.642 | 0.458 | 0.642 | +0.000 (−0.04 to +0.04) | 0.58 / 0.66 |
+| SA | 135 | 28 | 0.591 | 0.543 | 0.596 | +0.005 (−0.03 to +0.04) | 0.57 / 0.43 |
+| UG | 233 | 78 | 0.677 | 0.505 | 0.674 | −0.003 (−0.03 to +0.02) | 0.97 / 0.07 |
+| VN | 161 | 64 | 0.780 | 0.569 | 0.776 | −0.004 (−0.02 to +0.01) | 0.78 / 0.58 |
+| **All (pooled)** | 1,082 | 291 | 0.707 | 0.638 | 0.714 | **+0.008 (−0.00 to +0.02), p = 0.12** | 0.87 / 0.34 |
+| **Mean over groups** | | | 0.690 | **0.506** | 0.676 | | |
+| **Worst group** | | | 0.591 | 0.434 | 0.596 | | |
+
+*Pretrained VGGish. The MFCC and spectrogram summaries behave the same way: pooled Δ +0.002 and
+−0.000, mean within-country cough AUROC 0.546 and 0.535.*
+
+<p align="center">
+  <img alt="Left: AUROC in each held-out country for questions only, cough only and both; the cough falls below 0.5 in Madagascar and the Philippines. Right: gain from adding the cough per country with 95 % CIs, only Madagascar's interval excludes zero, and it is negative." src="figures/coda/loco_auroc_and_gain.png" width="100%">
+</p>
+
+- **The answer to our question, for these representations, is no.** In five of six held-out
+  groups the gain lies within ±0.005; in Madagascar adding the cough makes things worse.
+- **Inside a new country the cough alone is near chance** (mean 0.506), and below 0.5 in
+  Madagascar and the Philippines. The questions lose far less.
+- **Extended questions** under leave-one-country-out: B 0.794, A 0.793, Δ −0.001 (p = 0.76).
+- **Thresholds do not travel.** A threshold set on the other countries for 90 % sensitivity
+  catches every TB case but clears **no one** in Madagascar, and catches only 57 % of TB cases in
+  South Africa. Pooled, the combined model clears only 34 % of non-TB patients (WHO target: 70 %).
+
+### 8.4 How optimistic is the random split?
+
+| Representation | Model | Random split | New country (pooled) | Drop |
+|---|---|---:|---:|---:|
+| MFCC summary | Questions | 0.731 | 0.707 | 0.025 |
+| MFCC summary | Cough | 0.676 | 0.598 | **0.078** |
+| Spectrogram summary | Cough | 0.678 | 0.603 | 0.076 |
+| VGGish (pretrained) | Questions | 0.731 | 0.707 | 0.025 |
+| VGGish (pretrained) | Cough | 0.684 | 0.638 | 0.045 |
+| VGGish (pretrained) | Questions + cough | 0.745 | 0.714 | 0.031 |
+
+Against the **within-country** average (0.506–0.546), the cough loses **0.13 to 0.18** from its
+random-split score, while the questions lose 0.04 (0.731 → 0.690).
+
+<p align="center">
+  <img alt="Random split versus a new country for the VGGish models: the cough drops most." src="figures/coda/random_vs_new_country.png" width="620">
+</p>
+
+### 8.5 A cough reveals its country
+
+| Representation | Country accuracy (chance 0.14) | Country AUROC | TB AUROC per person |
+|---|---:|---:|---:|
+| MFCC summary | 0.732 | **0.943** | 0.666 |
+| Spectrogram summary | 0.717 | **0.938** | 0.669 |
+| VGGish (pretrained) | 0.613 | **0.900** | 0.675 |
+
+Although every country used the same app and identical clips, a linear probe names the country
+from a single cough far better than it detects TB, so the signature comes from people, rooms or
+phones, not from data preparation. **The more a representation reveals the country, the more it
+loses in a new country** (MFCC: country 0.94, drop 0.078; VGGish: 0.90, drop 0.045).
+
+<p align="center">
+  <img alt="t-SNE of CODA coughs: coloured by country they form regional clusters, coloured by TB status the positive cases are scattered." src="figures/coda/tsne_country_tb.png" width="100%">
+</p>
+
+**A country shortcut is possible.** TB rates range from 10 % in the Philippines to 48 % in
+Madagascar. In the team's follow-up analysis, a score that knows only each country's TB rate
+reaches AUROC **0.700**, higher than the random-split cough model (0.684), and the pooled
+leave-one-country-out cough AUROC (0.638) sits well above the per-country average (0.506): the
+cough scores differ *between* countries more than they rank people *within* one. This is a
+**hypothesis, not yet a result**; Experiment 1 tests it directly.
+
+---
+
+## 9. Synthesis across the three datasets
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="figures/context-vs-tb-dark.svg">
+  <img alt="Linear-probe AUROC from pretrained VGGish features on unseen participants. Zambia: phone 0.912, TB 0.651. Kenya: device 0.666, TB 0.712. CODA: country 0.900, TB 0.675. Zambia versus Kenya: country 0.986." src="figures/context-vs-tb-light.svg" width="100%">
+</picture>
+
+| Question | Zambia | Kenya | CODA |
+|---|---|---|---|
+| Does the pipeline reproduce published results? | ✅ 0.740 vs 0.755 | ✅ 0.658 vs 0.661 per cough | ✅ 0.684 vs 0.69–0.74 |
+| Does the cough add to the questions within the population? | +0.019 (n.s.) | −0.006 (n.s.) | +0.014 (p = 0.01) |
+| … in a new country? | −0.003 (model trained in Kenya) | −0.016 (model trained in Zambia) | +0.008 (n.s.); MG −0.076 |
+| Is the recording context easier to read than TB? | Yes (phone 0.91–0.99) | **No** (device 0.67–0.73) | Yes (country 0.90–0.94) |
+
+Cough audio holds a **real but weak** TB signal (it survives within one Zambian clinic) next to a
+**much stronger** signal from the recording context. Within one dataset a model tolerates that
+imbalance. Across countries, which differ in phones, clinics and recording environments, the
+strong signal shifts while the weak one must carry the prediction. This is a plausible
+mechanism behind drops such as the Peruvian result [3].
 
 ## 10. Discussion, limitations and risks
 
-**Implications for country shift.** Cough audio holds a *real but weak* TB signal next to a
-*much stronger* signal from the recording conditions. Within one dataset a model tolerates that
-imbalance. But countries differ in phones, clinics and recording environments, so under
-country hold-out the strong signal shifts while the weak one must carry the prediction. This
-is a plausible mechanism behind drops such as the Peruvian external validation [3], and the
-reason the gain Δ must be measured on unseen countries.
-
-**Limitations and risks.**
-
 | Area | Issue | Mitigation |
 |---|---|---|
-| Sample size | 57 TB-positive participants make intervals wide; differences < 0.05 AUROC are undetectable. | Paired tests on shared folds; report CIs; merge the smallest CODA countries if needed. |
-| Attribution | Country hold-out mixes device, clinic, recruitment and severity; Zambia isolates device fully and clinic only in part. | Interpret Δ alongside the device and site analyses. |
-| Segmentation | The CLAP detector is zero-shot and has never been validated against hand labels. | Per-device alignment scores; spot-check the lowest 2 % by ear. |
-| Data access | CODA is controlled; our Intended Data Use statement is submitted and faculty sign-off is being requested. | Pipeline is built on Zambia so it can run on CODA unchanged. |
-| Compute | The 395 GB Kenyan TBscreen dataset [5] exceeds our storage and GPU budget. | Not used as a further external test. |
+| Sample size | 57 TB cases in Zambia; the Philippines has 19 | Lead with the within-country average and the pooled gain; bootstrap per country; single countries are exploratory |
+| Attribution | Country hold-out mixes device, clinic, recruitment and severity | Zambia and Kenya isolate the device; Experiments 1–3 probe the country shortcut |
+| Study design | Kenya is case-control, so absolute AUROCs are not comparable | Compare Δ and transfer, not AUROC |
+| Clip preparation | Zambia clips were padded with silence, CODA clips are 0.5 s | Experiment 6 cuts all three datasets to identical 0.5 s clips |
+| Questions | Some answers mean different things in different places (HIV, previous TB in Kenya; smoking definition in CODA) | Experiment 5 measures local recalibration for the questions too |
+| Representations | General audio features only so far | HeAR and OPERA in Experiment 4 |
+| Data governance | Private storage and Kaggle notebooks to be added to the data use statement | Amendment this week; exports stay aggregate-only |
 
-## 11. Next steps
+## 11. Roadmap: the final four weeks
 
-```mermaid
-flowchart LR
-    T["Cough clips<br/>six training countries"] --> E["Cough encoder<br/>trained on six countries"]
-    H["Cough clips<br/>held-out country"] --> E
-    E --> A["Model A<br/>questionnaire + cough"]
-    Q["Questionnaire<br/>(9 answers)"] --> A
-    Q --> B["Model B<br/>questionnaire only"]
-    A --> D["Same held-out patients<br/>Δ = AUROC(A) − AUROC(B)"]
-    B --> D
-```
+Four workstreams run in parallel from 10 November, with three gates that keep Week 4
+(ending 7 December) free for writing. All experiments except Experiment 6 run on the CODA data
+and plug into notebook 04.
 
-*Leave-one-country-out design on CODA, with Zambia as an external eighth country. Model B sees
-no audio, so changes in Δ between countries reflect the cough pathway.*
+| # | Experiment | Answers | Owner (proposed) | Priority |
+|---|---|---|---|---|
+| 1 | **Country shortcut test:** score the cough inside each country and against a country-only score | How much accuracy is a shortcut? | Martin | Core, first |
+| 2 | **Bacterial-load check:** does the cough score rise with Xpert grade within a country? | Shortcut vs real signal | Martin | Core |
+| 3 | **Removing recording context:** loudness levelling and per-country standardisation | Can simple fixes help? | Yusuf | Core |
+| 4 | **Health-specific encoders:** HeAR and OPERA under leave-one-country-out | Does a better encoder change the answer? | Odunayo | Core |
+| 5 | **Local data needed:** threshold reset and retraining with 10–100 local patients | What does a new country need? | Yusuf | Core |
+| 6 | **External test:** CODA-trained models on Zambia and Kenya with identical 0.5 s clips; nine-country probe | Does it hold on other studies? | Michael | Core |
+| 7 | **Who benefits:** the gain by HIV status and sex | Targeted use? | Martin | Add-on |
+| 8 | **Adapting the encoder:** fine-tune the best encoder, compare with frozen | Frozen vs adapted | Odunayo | Stretch |
 
-1. **Now, on Zambia:** build the fusion Model A and the HeAR and OPERA embeddings (arms A2,
-   A3), so they run on CODA unchanged.
-2. **On receiving CODA:** check per-country class balance, then run arms B and A1–A3 under
-   random and leave-one-country-out splits; report Δ per held-out country together with mean
-   and worst-country AUROC and specificity at a threshold fixed on the training countries.
-   Arm A4 then tests whether LoRA adaptation to six countries helps or harms the seventh,
-   followed by an attention-pooling ablation.
-3. **External test:** evaluate the CODA models on Zambia using the nine clinical variables both
-   datasets share.
+| Gate | Date | Must be true to pass | Decides |
+|---|---|---|---|
+| 1 · Shortcut verdict | Mon 16 Nov | Experiments 1–2 done; first Experiment 3 table; Zambia clips ready | The paper's headline |
+| 2 · Encoder freeze | Mon 23 Nov | HeAR and OPERA embeddings cached; main results table filled; Experiment 7 done | Representations in the paper; go/no-go on Experiment 8 |
+| 3 · Results freeze | Mon 30 Nov | Every table and figure in the shared folder | No new experiments after this |
+
+**Rules every experiment follows**
+
+- **Same people, same groups.** Use `coda_folds.csv` from notebook 04 (five random folds
+  `rfold`, six held-out groups `group`). Never re-split. The file lists participant IDs, so it
+  stays in the private Kaggle session and is **never committed**.
+- **Same headline numbers.** Under leave-one-country-out, report the mean of within-country
+  AUROCs, the pooled gain Δ with its DeLong interval, and the worst country.
+- **Same operating point.** Sensitivity and specificity at a threshold fixed on the training
+  countries for 90 % sensitivity.
+- **No peeking.** Never use the held-out country's labels except for scoring (Experiment 5 is the
+  one documented exception). Settings are chosen on the random split or inner folds.
+- **Same file format.** One CSV per experiment in `results/e<N>_<name>/`, one row per number, with
+  the columns below, plus PNG figures and a short `notes.md`.
+
+| Column | Example | Meaning |
+|---|---|---|
+| `experiment` | `e1` | Experiment number |
+| `variant` | `rebalanced` | Version within the experiment |
+| `representation` | `vggish` | `mfcc`, `spectrogram`, `vggish`, `hear`, `opera` |
+| `protocol` | `loco` | `random`, `loco` or `external` |
+| `test_group` | `MG` | Held-out group, country, subgroup or `pooled` |
+| `model` | `A` | `B`, `audio`, `A`, or a named reference model |
+| `n_people`, `n_tb` | `157`, `75` | Size of the test set |
+| `auroc`, `auroc_lo`, `auroc_hi` | `0.685`, `0.60`, `0.77` | AUROC with 95 % bootstrap interval |
+| `delta`, `delta_lo`, `delta_hi`, `p` | `-0.076`, `-0.12`, `-0.04`, `0.001` | Gain A − B with DeLong interval (B and A rows) |
+| `sens_frozen`, `spec_frozen` | `1.00`, `0.00` | At the threshold fixed on training data |
+| `seed`, `notebook_version` | `42`, `v7` | To reproduce the run |
+
+**Dropped from earlier plans:** adversarial training against country (replaced by Experiment 3),
+pitch and voice-quality features, forced coughs (not in the data use statement; inconclusive in
+Kenya), CODA longitudinal coughs, a CODA device-swap analysis (no device labels), and full
+fine-tuning of every encoder (reduced to Experiment 8).
+
+**Path to publication.** The course report becomes the first draft of a paper, working title
+*What survives a change of country? Cough audio for TB triage under country shift*, with a
+preprint after the course and Interspeech 2027 as the main target venue. Before submitting
+anywhere, check CODA's conditions for publications.
 
 ## 12. Repository structure
 
 ```
 IDL_F26_CoughTB/
-├── README.md                          # this document
+├── README.md                               # this document
 ├── docs/
-│   └── progress_report.pdf            # 6-page progress report (NeurIPS format)
+│   └── progress_report.pdf                 # midterm progress report (Zambia stage)
 ├── notebooks/
-│   ├── 01_zambia_baseline.ipynb       # inventory, EDA, audit, segmentation, cohort, folds, Baselines B and C1
-│   └── 02_embedding_analysis.ipynb    # phone vs TB probes, t-SNE, site check, same-cough distances, unseen phone
+│   ├── 01_zambia_baseline.ipynb            # Zambia: audit, segmentation, cohort, Baselines B and C1
+│   ├── 02_embedding_analysis.ipynb         # Zambia: phone vs TB probes, same-cough distances, unseen phone
+│   ├── 03_kenya_tbscreen_baselines.ipynb   # Kenya: baselines, reproduction, device analysis, Zambia ↔ Kenya
+│   └── 04_coda_leave_one_country_out.ipynb # CODA: random split, leave-one-country-out, country probe
 ├── figures/
-│   ├── architecture-{light,dark}.svg  # pipeline + VGGish diagram (generated)
-│   ├── baseline-auroc-{light,dark}.svg
-│   ├── probe-{light,dark}.svg
-│   ├── *.png                          # figures from the progress report
-│   └── notebook/                      # figures exported from the two notebooks
+│   ├── *-{light,dark}.svg                  # generated by scripts/make_figures.py
+│   ├── *.png                               # figures from the progress report
+│   ├── notebook/                           # Zambia figures from notebooks 01 and 02
+│   ├── kenya/                              # figures from notebook 03
+│   └── coda/                               # figures from notebook 04 (aggregate only)
 ├── scripts/
-│   └── make_figures.py                # regenerates the SVG figures
-└── .gitignore
+│   └── make_figures.py                     # regenerates the SVG figures
+└── .gitignore                              # keeps audio, features, bundles, weights and fold files out
 ```
 
-The Zambia audio, the segmented clips, features and model weights are **not included**; they
-are produced by the notebooks from the original dataset.
+No dataset files are included. Everything the notebooks need is read from Kaggle or the team's
+private storage at run time.
 
 ## 13. Reproducing the results
 
-Both notebooks are written for **Kaggle** and save every expensive intermediate as a zipped
-"bundle" so later runs can resume.
+All four notebooks are written for **private Kaggle notebooks** with **Internet on**.
 
-**Notebook 01: baselines** ([`notebooks/01_zambia_baseline.ipynb`](notebooks/01_zambia_baseline.ipynb))
+| Notebook | Add data / secrets | Accelerator |
+|---|---|---|
+| 01 Zambia | Dataset `googlehealthai/google-health-ai` | GPU T4. Run first with `FAST_MODE = True` (≈ 1–2 h), then `False` for the full protocol |
+| 02 Embedding analysis | The `zambia_features_mel` bundle exported by notebook 01 | None needed |
+| 03 Kenya | Secret `AZURE_STORAGE_CONNECTION_STRING`; the notebook 01 Zambia bundles; optionally the TBscreen code folder for the published T1 folds | GPU T4 |
+| 04 CODA | Secret `AZURE_STORAGE_CONNECTION_STRING` (personal read-only token for the `coda` container) | GPU T4 (only Step 6) |
 
-1. Create a Kaggle notebook from the file and **Add data** `googlehealthai/google-health-ai`.
-2. Accelerator: **GPU T4** (one is enough). **Internet: on** (CLAP package and weights,
-   VGGish weights, relabelling log).
-3. Run once with `FAST_MODE = True` (≈ 1–2 h end to end), then with `FAST_MODE = False` for the
-   full protocol (2 × 5 outer folds × 4 inner models).
-4. Outputs in `/kaggle/working/export/`:
+To run notebook 04 you must be certified for CODA on Synapse and named in the data use
+statement. Make a **private** copy of the notebook, add the secret under *Add-ons → Secrets*,
+and run it once to create the cached waveforms, embeddings and `coda_folds.csv` used by every
+experiment. Its export bundle `coda_results.zip` holds aggregate tables and figures only.
 
-| Bundle | Contents |
-|---|---|
-| `zambia_segmented_coughs.zip` | every cough clip, manifest, QC tables |
-| `zambia_metadata_cohort.zip` | harmonised clinical variables, cohorts, **shared folds** |
-| `zambia_features_mel.zip` | clean and augmented log-mel features with indexes |
-| `zambia_baseline_results.zip` | out-of-fold scores, per-fold AUROCs, paired comparison, all figures |
-
-To skip recomputation in a later run, attach a saved bundle and set `SEGMENTED_INPUT` or
-`FEATURES_INPUT` in the `CFG` cell.
-
-**Notebook 02: embedding analysis** ([`notebooks/02_embedding_analysis.ipynb`](notebooks/02_embedding_analysis.ipynb))
-
-1. Add the dataset holding `zambia_features_mel.zip` from Notebook 01 and point
-   `CFG["FEATURES_INPUT"]` at it.
-2. No GPU is needed (a few minutes on CPU). Internet on to download the VGGish weights.
-
-**Figures.** To rebuild the generated SVGs:
+To rebuild the generated SVG figures:
 
 ```bash
 pip install matplotlib
@@ -779,13 +854,18 @@ python scripts/make_figures.py
 
 ## 15. Acknowledgements
 
-- The **Zambia CIDRZ** cough data were collected by CIDRZ with Google Health AI and are
-  distributed on Kaggle (`googlehealthai/google-health-ai`). They are not redistributed here.
-- The cough extractor, relabelling log and VGGish training recipe come from **Zhang et al.
+- **CODA TB DREAM:** data from the CODA TB DREAM Challenge consortium, accessed through Synapse
+  (`syn39711065`) under a data use agreement. We thank the participants and the study teams in
+  all seven countries.
+- **Zambia CIDRZ:** data collected by CIDRZ with Google Health AI, distributed on Kaggle
+  (`googlehealthai/google-health-ai`).
+- **Kenya TBscreen:** Sharma et al. [5].
+- The cough extractor, relabelling log and Zambia training recipe come from **Zhang et al.
   (2026)**, [esl-epfl/tb-cough-generalization](https://github.com/esl-epfl/tb-cough-generalization)
-  (MIT licence). Where we changed their code, the notebook says exactly what and why.
-- Pretrained VGGish weights: [harritaylor/torchvggish](https://github.com/harritaylor/torchvggish).
-- Course staff of Introduction to Deep Learning at Carnegie Mellon University.
+  (MIT licence). The VGGish front end is ported from Google's AudioSet `mel_features.py` /
+  `vggish_input.py` (Apache 2.0); pretrained weights from
+  [harritaylor/torchvggish](https://github.com/harritaylor/torchvggish).
+- Course staff of 11-785 Introduction to Deep Learning at Carnegie Mellon University.
 
-**Team:** Martin Koome, Odunayo Akinlade, Yusuf Olaniyi, Michael Quaicoe
-(work areas: data and audit; encoders; fusion; evaluation).
+**Team and workstreams:** Martin Koome (shortcut and statistics), Odunayo Akinlade (encoders),
+Yusuf Olaniyi (fixes and local data), Michael Quaicoe (external data).

@@ -7,7 +7,18 @@ data/
 segmented_coughs/
 export/
 outputs/
+outputs_coda/
+outputs_tbscreen/
 cache/
+cache_coda/
+cache_tbscreen/
+restored/
+
+# Participant-level files (fold assignments and predictions list participant IDs)
+*folds*.csv
+*_oof*.csv
+*predictions*.csv
+*subject_scores*.csv
 
 # Model weights
 *.pth

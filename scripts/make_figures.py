@@ -5,10 +5,11 @@
 Outputs (written to ./figures):
     architecture-{light,dark}.svg   - preprocessing pipeline and the VGGish + TB-head network
     baseline-auroc-{light,dark}.svg - our baselines against Zhang et al. (2026)
-    probe-{light,dark}.svg          - what a linear probe recovers from the cough features
+    probe-{light,dark}.svg          - what a linear probe recovers from the cough features (Zambia)
+    gain-forest-{light,dark}.svg    - gain from adding the cough, every dataset and setting
+    context-vs-tb-{light,dark}.svg  - recording context versus TB status, all three datasets
 
-Every number below is copied from the printed outputs of notebooks/01_zambia_baseline.ipynb
-(Steps 9-11) and notebooks/02_embedding_analysis.ipynb (Sections 3 and 5).
+Every number below is copied from the printed outputs of the four notebooks in notebooks/.
 """
 
 import os
@@ -303,6 +304,85 @@ def probe_svg(t, path):
     plt.close(fig)
 
 
+def gain_forest_svg(t, path):
+    """Gain from adding the cough (AUROC(A) - AUROC(B), DeLong 95 % CI) in every setting run so far.
+
+    Zambia and Kenya rows: notebooks/03 Step 10 (pretrained VGGish + linear probe).
+    CODA rows: notebooks/04 Steps 7-8 (pretrained VGGish).
+    """
+    _rc()
+    rows = [  # (label, delta, lo, hi, kind)
+        ("Zambia, within country", 0.019, -0.01, 0.04, "within"),
+        ("Kenya, within country", -0.006, -0.04, 0.03, "within"),
+        ("CODA, random split (7 countries mixed)", 0.014, 0.00, 0.02, "within"),
+        ("Zambia → Kenya", -0.016, -0.05, 0.01, "new"),
+        ("Kenya → Zambia", -0.003, -0.02, 0.02, "new"),
+        ("CODA, leave-one-country-out (pooled)", 0.008, -0.00, 0.02, "new"),
+        ("CODA, held-out Madagascar", -0.076, -0.12, -0.04, "new"),
+    ]
+    fig, ax = plt.subplots(figsize=(8.8, 4.4), dpi=100)
+    _style(ax, fig, t)
+    ax.grid(axis="y", visible=False)
+    ax.grid(axis="x", color=t["grid"], lw=1)
+    n = len(rows)
+    for i, (label, d, lo, hi, kind) in enumerate(rows):
+        y = n - 1 - i
+        color = t["s1"] if kind == "within" else t["s2"]
+        ax.plot([lo, hi], [y, y], color=color, lw=2.4, solid_capstyle="round")
+        ax.plot(d, y, "o", ms=8, color=color, mec=t["surface"], mew=2, zorder=5)
+        ax.text(0.105, y, f"{d:+.3f}", va="center", ha="right", color=t["ink"], fontsize=10.5,
+                fontweight="bold", family="monospace")
+    ax.axvline(0, color=t["muted"], lw=1.2, ls="--")
+    ax.set_yticks(range(n), [r[0] for r in rows][::-1])
+    ax.set_xlim(-0.14, 0.11)
+    ax.set_ylim(-0.7, n - 0.3)
+    ax.set_xlabel("Gain Δ = AUROC(questions + cough) − AUROC(questions)", color=t["ink2"], fontsize=10.5)
+    ax.plot([], [], "o-", color=t["s1"], label="same population")
+    ax.plot([], [], "o-", color=t["s2"], label="new country")
+    leg = ax.legend(loc="upper left", frameon=False, fontsize=10.5)
+    for txt in leg.get_texts():
+        txt.set_color(t["ink2"])
+    ax.set_title("Adding the cough to the questionnaire: gain with 95 % DeLong CI", loc="left",
+                 color=t["ink"], fontsize=13, fontweight="bold", pad=14)
+    fig.tight_layout()
+    fig.savefig(path, format="svg", facecolor=t["surface"])
+    plt.close(fig)
+
+
+def context_svg(t, path):
+    """Recording context versus TB status from the same pretrained-VGGish features (linear probes,
+    unseen participants). Sources: notebooks/02 Section 3, notebooks/03 Steps 8 and 10, notebooks/04 Step 9."""
+    _rc()
+    groups = ["Zambia\nphone (3 models)", "Kenya\ndevice (phone + 2 mics)", "CODA\ncountry (7, same app)",
+              "Zambia vs Kenya\ncountry"]
+    context = [0.912, 0.666, 0.900, 0.986]
+    tb = [0.651, 0.712, 0.675, None]
+
+    fig, ax = plt.subplots(figsize=(8.8, 4.3), dpi=100)
+    _style(ax, fig, t)
+    w = 0.34
+    for i in range(len(groups)):
+        ax.bar(i - w / 2, context[i], w, color=t["s1"], label="recover the recording context" if i == 0 else None)
+        ax.text(i - w / 2, context[i] + 0.01, f"{context[i]:.3f}", ha="center", va="bottom", color=t["ink"],
+                fontsize=10.5, fontweight="bold")
+        if tb[i] is not None:
+            ax.bar(i + w / 2, tb[i], w, color=t["s2"], label="recover TB status (per person)" if i == 0 else None)
+            ax.text(i + w / 2, tb[i] + 0.01, f"{tb[i]:.3f}", ha="center", va="bottom", color=t["ink"],
+                    fontsize=10.5, fontweight="bold")
+    ax.axhline(0.5, color=t["muted"], lw=1.2, ls="--")
+    ax.set_xticks(range(len(groups)), groups)
+    ax.set_ylim(0.4, 1.08)
+    ax.set_ylabel("AUROC on unseen participants", color=t["ink2"], fontsize=10.5)
+    leg = ax.legend(loc="upper left", frameon=False, fontsize=10.5, ncol=2)
+    for txt in leg.get_texts():
+        txt.set_color(t["ink2"])
+    ax.set_title("A cough reveals where it was recorded more easily than TB", loc="left",
+                 color=t["ink"], fontsize=13, fontweight="bold", pad=14)
+    fig.tight_layout()
+    fig.savefig(path, format="svg", facecolor=t["surface"])
+    plt.close(fig)
+
+
 def main():
     os.makedirs(FIGURES, exist_ok=True)
     for mode, t in THEMES.items():
@@ -310,6 +390,8 @@ def main():
             f.write(architecture_svg(t))
         baseline_svg(t, os.path.join(FIGURES, f"baseline-auroc-{mode}.svg"))
         probe_svg(t, os.path.join(FIGURES, f"probe-{mode}.svg"))
+        gain_forest_svg(t, os.path.join(FIGURES, f"gain-forest-{mode}.svg"))
+        context_svg(t, os.path.join(FIGURES, f"context-vs-tb-{mode}.svg"))
     print("Figures written to", FIGURES)
 
 
