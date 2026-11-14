@@ -1,0 +1,16 @@
+test set,representation,people (TB),AUROC questions (B),AUROC cough,AUROC both (A),gain Δ,p,"sens. (A, frozen)","spec. (A, frozen)"
+"Zambia, all phones pooled",MFCC summary,325 (57),0.696,0.55,0.691,-0.005 (-0.02 to +0.01),0.628,0.88,0.25
+"Zambia, all phones pooled",Spectrogram summary,325 (57),0.696,0.487,0.68,-0.016 (-0.03 to +0.00),0.081,0.88,0.29
+"Zambia, all phones pooled",VGGish (pretrained),325 (57),0.696,0.578,0.698,+0.002 (-0.02 to +0.02),0.806,0.95,0.17
+"Zambia, Phone A",MFCC summary,314 (55),0.693,0.539,0.682,-0.011 (-0.03 to +0.01),0.28,0.85,0.31
+"Zambia, Phone A",Spectrogram summary,314 (55),0.693,0.48,0.671,-0.022 (-0.04 to -0.00),0.03,0.84,0.34
+"Zambia, Phone A",VGGish (pretrained),314 (55),0.693,0.569,0.689,-0.003 (-0.02 to +0.02),0.757,0.93,0.22
+"Zambia, Phone B",MFCC summary,313 (57),0.703,0.53,0.696,-0.007 (-0.03 to +0.01),0.466,0.91,0.2
+"Zambia, Phone B",Spectrogram summary,313 (57),0.703,0.467,0.68,-0.023 (-0.04 to -0.00),0.015,0.88,0.26
+"Zambia, Phone B",VGGish (pretrained),313 (57),0.703,0.59,0.705,+0.002 (-0.02 to +0.02),0.846,0.95,0.19
+"Zambia, Phone C",MFCC summary,321 (57),0.696,0.552,0.691,-0.004 (-0.03 to +0.02),0.68,0.89,0.25
+"Zambia, Phone C",Spectrogram summary,321 (57),0.696,0.489,0.68,-0.016 (-0.03 to +0.00),0.087,0.88,0.3
+"Zambia, Phone C",VGGish (pretrained),321 (57),0.696,0.54,0.694,-0.002 (-0.02 to +0.02),0.867,0.98,0.14
+"Kenya, pixel",MFCC summary,118 (84),0.668,0.577,0.674,+0.006 (-0.04 to +0.05),0.81,0.96,0.18
+"Kenya, pixel",Spectrogram summary,118 (84),0.668,0.57,0.679,+0.011 (-0.03 to +0.05),0.593,0.98,0.18
+"Kenya, pixel",VGGish (pretrained),118 (84),0.668,0.575,0.659,-0.009 (-0.04 to +0.02),0.582,0.99,0.09

@@ -1,0 +1,12 @@
+dataset,group,clips,rms_median,active_share_median
+CODA,IN,1043,-19.73,1.0
+CODA,MG,1293,-24.35,0.7
+CODA,PH,1356,-16.42,0.82
+CODA,SA,1119,-16.52,0.96
+CODA,TZ,1004,-14.88,1.0
+CODA,UG,2166,-18.84,0.9
+CODA,VN,1791,-19.4,0.78
+Kenya,pixel,1094,-24.78,1.0
+Zambia,Phone A,1749,-17.88,0.78
+Zambia,Phone B,1744,-20.69,0.82
+Zambia,Phone C,1794,-24.26,0.76
