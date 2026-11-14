@@ -1,0 +1,4 @@
+dataset,clips,rms_median,rms_q25,rms_q75,peak_median,active_share_median,orig_seconds_median,orig_seconds_q75
+CODA,9772,-18.92,-22.14,-16.42,-3.12,0.9,0.5,0.5
+Kenya,1094,-24.78,-30.0,-20.7,-8.21,1.0,1.0,1.0
+Zambia,5287,-20.6,-23.5,-18.32,-4.21,0.78,0.53,0.64

@@ -1,0 +1,7 @@
+direction,representation,B new,audio new,A new,B old,audio old,A old,gain Δ new
+Zambia to Kenya,MFCC summary,0.668,0.62,0.657,0.66,0.551,0.644,-0.011
+Zambia to Kenya,Spectrogram summary,0.668,0.624,0.67,0.66,0.551,0.644,0.002
+Zambia to Kenya,VGGish (pretrained),0.668,0.625,0.664,0.66,0.551,0.644,-0.004
+Kenya to Zambia,MFCC summary,0.687,0.67,0.715,0.683,0.585,0.679,0.028
+Kenya to Zambia,Spectrogram summary,0.687,0.684,0.715,0.683,0.585,0.679,0.027
+Kenya to Zambia,VGGish (pretrained),0.687,0.61,0.701,0.683,0.585,0.679,0.013
