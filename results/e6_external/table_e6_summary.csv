@@ -2,3 +2,4 @@ representation,mean AUROC questions (B),mean AUROC cough,mean AUROC both (A),mea
 mfcc,0.682,0.564,0.682,0.0,"Zambia, all phones pooled",-0.005,0.674
 spectrogram,0.682,0.529,0.679,-0.003,"Zambia, all phones pooled",-0.016,0.679
 vggish,0.682,0.576,0.679,-0.003,"Kenya, pixel",-0.009,0.659
+hear,0.682,0.676,0.717,0.035,"Zambia, all phones pooled",0.031,0.706

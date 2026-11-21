@@ -26,3 +26,12 @@ VGGish (pretrained),TZ,6,0,1,7,5,57,9,2,0
 VGGish (pretrained),UG,6,0,10,4,6,11,195,1,0
 VGGish (pretrained),VN,1,0,2,2,0,0,1,153,2
 VGGish (pretrained),Zambia,0,0,4,0,2,1,0,2,316
+HeAR (repeat),IN,109,0,0,1,1,2,4,1,0
+HeAR (repeat),Kenya,0,117,0,0,0,0,0,0,1
+HeAR (repeat),MG,0,2,153,0,0,0,1,1,0
+HeAR (repeat),PH,1,0,0,188,0,1,0,1,0
+HeAR (repeat),SA,1,0,0,1,111,15,3,4,0
+HeAR (repeat),TZ,0,0,0,2,5,73,7,0,0
+HeAR (repeat),UG,1,0,1,0,2,6,223,0,0
+HeAR (repeat),VN,0,1,0,1,0,0,0,159,0
+HeAR (repeat),Zambia,0,0,0,0,0,0,0,1,324

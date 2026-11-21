@@ -1,0 +1,4 @@
+representation,check 1 (draws),check 2 (phone and site),check 3 (shuffle),supported
+MFCC summary,stable (10 of 10 above zero),local (4 of 5 above zero),beats the shuffle (p = 0.02),yes
+Spectrogram summary,stable (10 of 10 above zero),local (4 of 5 above zero),beats the shuffle (p = 0.01),yes
+VGGish (pretrained),stable (10 of 10 above zero),local (2 of 5 above zero),does not beat the shuffle (p = 0.109),no

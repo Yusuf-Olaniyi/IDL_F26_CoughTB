@@ -1,0 +1,4 @@
+representation,observed gain,shuffled runs,shuffled mean,shuffled 95th percentile,shuffled max,empirical p
+MFCC summary,0.028,100,-0.001,0.012,0.036,0.02
+Spectrogram summary,0.027,100,-0.001,0.015,0.022,0.01
+VGGish (pretrained),0.013,100,0.0,0.018,0.045,0.109

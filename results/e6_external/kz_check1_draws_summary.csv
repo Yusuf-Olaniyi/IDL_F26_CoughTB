@@ -1,0 +1,4 @@
+representation,draws,mean gain,lowest,highest,draws with gain > 0,draws with p < 0.05,mean cough-only AUROC,original draw gain,whole pool gain
+MFCC summary,10,0.023,0.009,0.034,10,4,0.662,0.028,0.024
+Spectrogram summary,10,0.027,0.016,0.036,10,10,0.678,0.027,0.027
+VGGish (pretrained),10,0.021,0.003,0.036,10,3,0.65,0.013,0.019
