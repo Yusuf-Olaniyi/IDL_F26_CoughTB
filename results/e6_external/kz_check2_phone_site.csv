@@ -1,0 +1,19 @@
+test_group,representation,people (TB),AUROC questions (B),AUROC cough,AUROC both (A),gain,95% interval,p
+"Zambia, all phones pooled",MFCC summary,325 (57),0.687,0.67,0.715,0.028,+0.007 to +0.049,0.0091
+"Zambia, all phones pooled",Spectrogram summary,325 (57),0.687,0.684,0.715,0.027,+0.009 to +0.045,0.0028
+"Zambia, all phones pooled",VGGish (pretrained),325 (57),0.687,0.61,0.701,0.013,-0.020 to +0.047,0.435
+"Zambia, Phone A",MFCC summary,314 (55),0.697,0.689,0.731,0.034,+0.012 to +0.057,0.0026
+"Zambia, Phone A",Spectrogram summary,314 (55),0.697,0.697,0.731,0.034,+0.013 to +0.055,0.0017
+"Zambia, Phone A",VGGish (pretrained),314 (55),0.697,0.569,0.693,-0.004,-0.043 to +0.034,0.8218
+"Zambia, Phone B",MFCC summary,313 (57),0.692,0.628,0.711,0.019,-0.005 to +0.044,0.1187
+"Zambia, Phone B",Spectrogram summary,313 (57),0.692,0.656,0.716,0.024,+0.003 to +0.045,0.0248
+"Zambia, Phone B",VGGish (pretrained),313 (57),0.692,0.607,0.713,0.022,-0.019 to +0.063,0.3017
+"Zambia, Phone C",MFCC summary,321 (57),0.686,0.673,0.716,0.029,+0.009 to +0.050,0.0054
+"Zambia, Phone C",Spectrogram summary,321 (57),0.686,0.679,0.716,0.029,+0.011 to +0.048,0.002
+"Zambia, Phone C",VGGish (pretrained),321 (57),0.686,0.561,0.678,-0.008,-0.057 to +0.041,0.7418
+Zambia site Chawama,MFCC summary,110 (10),0.797,0.61,0.788,-0.009,-0.036 to +0.018,0.51
+Zambia site Chawama,Spectrogram summary,110 (10),0.797,0.606,0.788,-0.009,-0.039 to +0.021,0.5519
+Zambia site Chawama,VGGish (pretrained),110 (10),0.797,0.453,0.723,-0.074,-0.170 to +0.022,0.13
+Zambia site Kanyama,MFCC summary,215 (47),0.653,0.67,0.686,0.032,+0.008 to +0.057,0.0093
+Zambia site Kanyama,Spectrogram summary,215 (47),0.653,0.679,0.685,0.032,+0.010 to +0.053,0.0036
+Zambia site Kanyama,VGGish (pretrained),215 (47),0.653,0.656,0.692,0.038,+0.002 to +0.074,0.0376
